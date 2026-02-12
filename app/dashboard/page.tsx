@@ -7,18 +7,29 @@ import Link from "next/link";
 import { deletePlan, acceptInvite, declineInvite } from "@/app/actions";
 
 export default async function DashboardPage() {
+  // 1. Get the session, but don't just 'wait'—force a check
   const { userId } = await auth();
 
-  // 1. Fetch data in parallel for speed!
+  // 2. If the user isn't found immediately, show a simple message
+  // instead of letting the database queries fail and break the UI.
+  if (!userId) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <p className="text-zinc-500 font-bold animate-pulse">
+          Authenticating with the Server...
+        </p>
+      </div>
+    );
+  }
+
+  // 3. Now that we definitely have a userId, run the queries
   const [myWorlds, pendingInvites] = await Promise.all([
-    // Worlds you have already accepted
     db.query.members.findMany({
-      where: and(eq(members.userId, userId!), eq(members.status, "accepted")),
+      where: and(eq(members.userId, userId), eq(members.status, "accepted")),
       with: { world: true },
     }),
-    // Worlds waiting for your response
     db.query.members.findMany({
-      where: and(eq(members.userId, userId!), eq(members.status, "pending")),
+      where: and(eq(members.userId, userId), eq(members.status, "pending")),
       with: { world: true },
     })
   ]);
