@@ -13,6 +13,7 @@ export const members = pgTable("members", {
   worldId: integer("world_id").references(() => worlds.id, { onDelete: 'cascade' }).notNull(),
   userId: varchar("user_id", { length: 255 }).notNull(), // The User (Owner or Guest)
   role: text("role").default("member"), // 'owner' or 'member'
+  status: text("status").default("pending"),
 });
 
 // Relations allow us to "Join" these tables later
