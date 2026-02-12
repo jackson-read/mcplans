@@ -1,3 +1,6 @@
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 import { auth } from "@clerk/nextjs/server";
 import { UserButton } from "@clerk/nextjs";
 import { db } from "@/db";
@@ -7,22 +10,23 @@ import Link from "next/link";
 import { deletePlan, acceptInvite, declineInvite } from "@/app/actions";
 
 export default async function DashboardPage() {
-  // 1. Get the session, but don't just 'wait'—force a check
+  // 1. Get the session
   const { userId } = await auth();
 
-  // 2. If the user isn't found immediately, show a simple message
-  // instead of letting the database queries fail and break the UI.
+  // 2. SAFETY CHECK: If Clerk isn't ready, show a loading state
+  // This stops the dashboard from breaking when you leave and come back!
   if (!userId) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <p className="text-zinc-500 font-bold animate-pulse">
-          Authenticating with the Server...
-        </p>
+      <div className="flex h-screen items-center justify-center bg-white dark:bg-zinc-950">
+        <div className="flex flex-col items-center gap-4 text-center">
+          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-zinc-500 font-bold animate-pulse">Authenticating with the Server...</p>
+        </div>
       </div>
     );
   }
 
-  // 3. Now that we definitely have a userId, run the queries
+  // 3. Fetch data (This only runs if we HAVE a userId)
   const [myWorlds, pendingInvites] = await Promise.all([
     db.query.members.findMany({
       where: and(eq(members.userId, userId), eq(members.status, "accepted")),
@@ -38,15 +42,9 @@ export default async function DashboardPage() {
     pageContainer: "p-8 max-w-5xl mx-auto",
     header: "flex justify-between items-center mb-12",
     title: "text-3xl font-bold tracking-tight",
-    
-    // The Invite Alert Box
     inviteBox: "mb-10 p-6 bg-amber-50 border-2 border-amber-200 rounded-2xl dark:bg-amber-900/10 dark:border-amber-900/30",
-    
-    // The 'Create New' Card
     createCard: "p-8 border-2 border-dashed border-zinc-300 rounded-2xl flex flex-col items-center justify-center text-center hover:bg-zinc-50 transition-colors dark:border-zinc-700 dark:hover:bg-zinc-900/50",
     createButton: "mt-4 px-6 py-3 bg-black text-white rounded-xl font-medium hover:scale-105 active:scale-95 transition-all dark:bg-white dark:text-black",
-    
-    // The World List Grid
     grid: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6",
     worldCard: "p-6 border rounded-2xl bg-white shadow-sm hover:shadow-md transition-shadow dark:bg-zinc-900 dark:border-zinc-800",
     cardTitle: "text-xl font-bold mb-1",
