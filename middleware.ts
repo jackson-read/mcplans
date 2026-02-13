@@ -1,10 +1,9 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-// 1. Define which routes are PROTECTED (the dashboard)
+// This protects the dashboard so you CANNOT access it without a valid session
 const isProtectedRoute = createRouteMatcher(['/dashboard(.*)']);
 
 export default clerkMiddleware(async (auth, req) => {
-  // 2. If it's a dashboard route, force the user to be logged in
   if (isProtectedRoute(req)) await auth.protect();
 });
 

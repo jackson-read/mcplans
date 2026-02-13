@@ -1,4 +1,4 @@
-export const dynamic = "force-dynamic";
+export const dynamic = "force-dynamic"; // 1. FORCE NEW DATA
 export const revalidate = 0;
 
 import { auth } from "@clerk/nextjs/server";
@@ -10,23 +10,20 @@ import Link from "next/link";
 import { deletePlan, acceptInvite, declineInvite } from "@/app/actions";
 
 export default async function DashboardPage() {
-  // 1. Get the session
   const { userId } = await auth();
 
-  // 2. SAFETY CHECK: If Clerk isn't ready, show a loading state
-  // This stops the dashboard from breaking when you leave and come back!
+  // 2. DEBUG STRIP: This prints your ID on the screen so we know if Auth is working
   if (!userId) {
     return (
-      <div className="flex h-screen items-center justify-center bg-white dark:bg-zinc-950">
-        <div className="flex flex-col items-center gap-4 text-center">
-          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-zinc-500 font-bold animate-pulse">Authenticating with the Server...</p>
-        </div>
+      <div className="h-screen flex flex-col items-center justify-center bg-zinc-950 text-white gap-4">
+        <h1 className="text-4xl font-bold text-red-500">SESSION LOST</h1>
+        <p>UserId is null. Middleware did not restore session.</p>
+        <Link href="/" className="px-4 py-2 bg-blue-600 rounded">Go Home & Sign In</Link>
       </div>
     );
   }
 
-  // 3. Fetch data (This only runs if we HAVE a userId)
+  // 3. Fetch Data
   const [myWorlds, pendingInvites] = await Promise.all([
     db.query.members.findMany({
       where: and(eq(members.userId, userId), eq(members.status, "accepted")),
@@ -38,90 +35,54 @@ export default async function DashboardPage() {
     })
   ]);
 
-  const styles = {
-    pageContainer: "p-8 max-w-5xl mx-auto",
-    header: "flex justify-between items-center mb-12",
-    title: "text-3xl font-bold tracking-tight",
-    inviteBox: "mb-10 p-6 bg-amber-50 border-2 border-amber-200 rounded-2xl dark:bg-amber-900/10 dark:border-amber-900/30",
-    createCard: "p-8 border-2 border-dashed border-zinc-300 rounded-2xl flex flex-col items-center justify-center text-center hover:bg-zinc-50 transition-colors dark:border-zinc-700 dark:hover:bg-zinc-900/50",
-    createButton: "mt-4 px-6 py-3 bg-black text-white rounded-xl font-medium hover:scale-105 active:scale-95 transition-all dark:bg-white dark:text-black",
-    grid: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6",
-    worldCard: "p-6 border rounded-2xl bg-white shadow-sm hover:shadow-md transition-shadow dark:bg-zinc-900 dark:border-zinc-800",
-    cardTitle: "text-xl font-bold mb-1",
-    cardRole: "text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-6",
-    deleteBtn: "text-red-500 text-sm hover:underline cursor-pointer",
-  };
-
   return (
-    <div className={styles.pageContainer}>
-      <header className={styles.header}>
-        <h1 className={styles.title}>Your Worlds</h1>
+    <div className="min-h-screen p-8 max-w-5xl mx-auto font-sans">
+      {/* --- DEBUG STRIP (REMOVE LATER) --- */}
+      <div className="bg-red-900/50 border border-red-500 p-2 mb-8 text-xs text-red-200 font-mono text-center rounded">
+        DEBUG MODE v3.0 | UserID: {userId} | Worlds Found: {myWorlds.length}
+      </div>
+      {/* ---------------------------------- */}
+
+      <header className="flex justify-between items-center mb-12">
+        <h1 className="text-3xl font-bold">Your Worlds</h1>
         <UserButton afterSignOutUrl="/" />
       </header>
 
-      {/* 📬 PENDING INVITES SECTION */}
+      {/* Invites */}
       {pendingInvites.length > 0 && (
-        <div className={styles.inviteBox}>
-          <h2 className="text-xl font-bold text-amber-800 dark:text-amber-400 mb-4">📬 You've been invited!</h2>
-          <div className="grid gap-3">
-            {pendingInvites.map((invite) => (
-              <div key={invite.id} className="flex items-center justify-between bg-white p-4 rounded-xl shadow-sm dark:bg-zinc-800">
-                <span className="font-bold">{invite.world.name}</span>
-                <div className="flex gap-2">
-                  <form action={acceptInvite}>
-                    <input type="hidden" name="memberId" value={invite.id} />
-                    <button className="px-4 py-2 bg-green-600 text-white rounded-lg text-xs font-bold hover:bg-green-700">Accept</button>
-                  </form>
-                  <form action={declineInvite}>
-                    <input type="hidden" name="memberId" value={invite.id} />
-                    <button className="px-4 py-2 bg-zinc-200 text-zinc-700 rounded-lg text-xs font-bold hover:bg-zinc-300">Decline</button>
-                  </form>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+         <div className="mb-10 p-4 bg-yellow-100 border-2 border-yellow-400 rounded-lg text-yellow-800">
+           <h2 className="font-bold">📬 Pending Invites: {pendingInvites.length}</h2>
+           {pendingInvites.map(i => (
+             <div key={i.id} className="flex gap-2 mt-2">
+               <span>{i.world.name}</span>
+               <form action={acceptInvite}><input type="hidden" name="memberId" value={i.id}/><button className="bg-green-500 text-white px-2 rounded">Accept</button></form>
+             </div>
+           ))}
+         </div>
       )}
 
-      <div className={styles.grid}>
-        {/* Create New Card */}
-        <div className={styles.createCard}>
-          <h2 className="text-lg font-semibold">Start a New Journey</h2>
-          <Link href="/dashboard/new">
-            <button className={styles.createButton}>+ Create World</button>
-          </Link>
+      {/* Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="p-8 border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center">
+          <Link href="/dashboard/new"><button className="font-bold">+ Create World</button></Link>
         </div>
 
-        {/* Accepted World List */}
-        {myWorlds.map((entry) => (
-          <div key={entry.id} className={styles.worldCard}>
-            <div className="flex justify-between items-start">
-              <div>
-                <h3 className={styles.cardTitle}>{entry.world.name}</h3>
-                <p className={styles.cardRole}>{entry.role}</p> 
-              </div>
+        {myWorlds.length > 0 ? myWorlds.map((entry) => (
+          <div key={entry.id} className="p-6 border rounded-xl shadow-sm bg-white dark:bg-zinc-800 dark:border-zinc-700">
+            <h3 className="text-xl font-bold">{entry.world.name}</h3>
+            <p className="text-sm text-gray-500 uppercase">{entry.role}</p>
+            <div className="flex gap-2 mt-4">
+              <Link href={`/dashboard/world/${entry.world.id}`}><button className="bg-blue-600 text-white px-3 py-1 rounded">Enter</button></Link>
               {entry.role === 'owner' && (
-                <form action={deletePlan}>
-                  <input type="hidden" name="id" value={entry.world.id} />
-                  <button type="submit" className={styles.deleteBtn}>Delete</button>
-                </form>
+                 <form action={deletePlan}><input type="hidden" name="id" value={entry.world.id}/><button className="text-red-500 text-sm">Delete</button></form>
               )}
             </div>
-            
-            <div className="mt-4 flex gap-2">
-              <Link href={`/dashboard/invite/${entry.world.id}`} className="flex-1">
-                <button className="w-full text-sm py-2 bg-zinc-100 rounded-lg text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400">
-                  Invite ✉️
-                </button>
-              </Link>
-              <Link href={`/dashboard/world/${entry.world.id}`} className="flex-1">
-                <button className="w-full text-sm py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                  Enter &rarr;
-                </button>
-              </Link>
-            </div>
           </div>
-        ))}
+        )) : (
+          <div className="col-span-2 p-10 text-center border bg-gray-50 rounded">
+            <p className="font-bold text-gray-500">No worlds found in DB for this user.</p>
+          </div>
+        )}
       </div>
     </div>
   );
