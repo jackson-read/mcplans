@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { UserButton } from "@clerk/nextjs";
 import { db } from "@/db";
 import { members } from "@/db/schema";
@@ -11,7 +11,11 @@ import { acceptInvite, declineInvite } from "@/app/actions";
 
 export default async function DashboardPage() {
   const { userId } = await auth();
+  const user = await currentUser(); // Get real user details
+  
   if (!userId) return <div>Access Denied</div>;
+
+  const username = user?.username || user?.firstName || "Miner";
 
   // 1. Fetch ACCEPTED worlds
   const activeWorlds = await db.query.members.findMany({
@@ -19,73 +23,80 @@ export default async function DashboardPage() {
     with: { world: true },
   });
 
-  // 2. Fetch PENDING invites (Inbox)
+  // 2. Fetch PENDING invites
   const pendingInvites = await db.query.members.findMany({
     where: and(eq(members.userId, userId), eq(members.status, "pending")),
     with: { world: true },
   });
 
   return (
-    <div className="min-h-screen bg-[#0e0e0e] text-white relative flex flex-col font-sans selection:bg-[#ff8c00] selection:text-black overflow-x-hidden">
+    <div className="min-h-screen bg-[#111] text-white relative flex flex-col font-sans selection:bg-[#ff8c00] selection:text-black overflow-x-hidden pb-32">
       
-      {/* 🌑 CAVE TEXTURE (Deepslate Noise) */}
-      <div className="fixed inset-0 opacity-[0.06] pointer-events-none z-0" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}></div>
+      {/* 🧱 BLOCKY BACKGROUND (CSS Grid Pattern) */}
+      <div className="fixed inset-0 z-0 opacity-20 pointer-events-none" 
+           style={{ 
+             backgroundImage: `
+               linear-gradient(335deg, rgba(0,0,0,0.3) 23px, transparent 23px),
+               linear-gradient(155deg, rgba(0,0,0,0.3) 23px, transparent 23px),
+               linear-gradient(335deg, rgba(0,0,0,0.3) 23px, transparent 23px),
+               linear-gradient(155deg, rgba(0,0,0,0.3) 23px, transparent 23px)
+             `,
+             backgroundSize: "58px 58px", 
+             backgroundColor: "#1a1a1a",
+             backgroundPosition: "0px 2px, 4px 35px, 29px 31px, 34px 6px"
+           }}>
+      </div>
 
-      {/* 🌋 LAVA GLOW (Bottom Gradient) */}
-      <div className="fixed bottom-0 left-0 w-full h-[50vh] bg-linear-to-t from-[#cf5b13]/20 to-transparent pointer-events-none z-0"></div>
+      {/* 🌋 LAVA POOL (Bottom Bar) */}
+      <div className="fixed bottom-0 left-0 w-full h-16 bg-[#cf5b13] border-t-4 border-[#ad3f0b] z-40 shadow-[0_-10px_60px_rgba(207,91,19,0.6)] flex items-center justify-center overflow-hidden">
+         {/* Lava texture bubbles */}
+         <div className="absolute top-2 left-10 w-8 h-2 bg-[#ffaa00] opacity-50 rounded-full animate-pulse"></div>
+         <div className="absolute top-4 right-20 w-4 h-4 bg-[#ffaa00] opacity-50 rounded-full animate-bounce"></div>
+         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20"></div>
+      </div>
       
-      {/* 🔦 TORCH LIGHT (Top Vignette) */}
-      <div className="fixed top-0 left-0 w-full h-[30vh] bg-linear-to-b from-black/80 to-transparent pointer-events-none z-0"></div>
+      {/* 🔦 VIGNETTE */}
+      <div className="fixed inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.8)_100%)] pointer-events-none z-0"></div>
 
       {/* 🔝 HEADER */}
       <header className="w-full max-w-7xl mx-auto p-6 flex justify-between items-center z-10 relative">
         <div className="flex flex-col">
-           <h1 className="text-4xl font-minecraft text-[#aaaaaa] drop-shadow-md tracking-wide">
-             <span className="text-[#6a6a6a]">/</span>dashboard
+           <h1 className="text-4xl font-minecraft text-[#aaaaaa] drop-shadow-[4px_4px_0_#000]">
+             <span className="text-[#555]">/</span>dashboard
            </h1>
-           <p className="text-zinc-500 text-sm font-minecraft mt-1">
-             Coords: <span className="text-[#5b8731]">~ ~ ~</span>
-           </p>
         </div>
         
-        {/* User Badge (Bedrock Style) */}
-        <div className="bg-[#1a1a1a] border-2 border-[#2a2a2a] shadow-[4px_4px_0px_0px_#000] rounded-none p-1 pl-4 pr-1 flex items-center gap-3">
-           <span className="text-xs text-zinc-400 font-minecraft hidden sm:block uppercase tracking-widest">Steve</span>
-           <UserButton afterSignOutUrl="/" appearance={{ elements: { userButtonAvatarBox: "w-8 h-8 rounded-none border border-zinc-600" }}}/>
+        {/* User Badge */}
+        <div className="bg-[#222] border-2 border-[#444] shadow-[4px_4px_0px_0px_#000] p-2 pl-4 flex items-center gap-4">
+           <div className="text-right hidden sm:block">
+              <span className="block text-xs text-[#888] font-minecraft uppercase tracking-widest">Player</span>
+              <span className="block text-sm text-white font-bold font-minecraft">{username}</span>
+           </div>
+           <UserButton afterSignOutUrl="/" appearance={{ elements: { userButtonAvatarBox: "w-9 h-9 rounded-none border-2 border-[#444]" }}}/>
         </div>
       </header>
 
       {/* 🌍 MAIN CONTENT */}
-      <main className="flex-1 w-full max-w-7xl mx-auto p-6 pb-40 z-10 space-y-12">
+      <main className="flex-1 w-full max-w-7xl mx-auto p-6 z-10 space-y-12">
         
-        {/* 📬 INBOX (Gold Vein Style) */}
+        {/* 📬 INBOX */}
         {pendingInvites.length > 0 && (
-          <section className="bg-[#1e1a10] border-2 border-[#ffd700]/30 p-6 relative overflow-hidden shadow-[0_0_20px_rgba(255,215,0,0.1)]">
-            <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-transparent via-[#ffd700] to-transparent opacity-50"></div>
-            
+          <section className="bg-[#2a2210] border-4 border-[#ffd700] p-6 shadow-[8px_8px_0_#000] relative">
             <h2 className="text-[#ffd700] font-minecraft text-xl mb-4 flex items-center gap-3">
-              <span className="animate-bounce">💎</span> Pending Invites ({pendingInvites.length})
+              <span>✉️</span> Pending Invites
             </h2>
-            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {pendingInvites.map((invite) => (
-                <div key={invite.id} className="bg-black/40 p-4 border border-[#ffd700]/20 flex justify-between items-center group hover:bg-[#ffd700]/10 transition-colors">
-                  <div>
-                    <h3 className="text-white font-minecraft text-lg">{invite.world.name}</h3>
-                    <p className="text-xs text-[#ffd700]/70 font-mono">Invite from User...</p>
-                  </div>
+                <div key={invite.id} className="bg-black/40 p-4 border-2 border-[#ffd700]/50 flex justify-between items-center">
+                  <h3 className="text-white font-minecraft">{invite.world.name}</h3>
                   <div className="flex gap-2">
                     <form action={acceptInvite}>
                       <input type="hidden" name="memberId" value={invite.id} />
-                      <button className="px-4 py-2 bg-[#5b8731] hover:bg-[#4a6e28] text-white border-b-4 border-[#3e6826] active:border-b-0 active:translate-y-1 text-xs font-bold transition-all font-minecraft">
-                        ACCEPT
-                      </button>
+                      <button className="px-3 py-2 bg-[#5b8731] hover:bg-[#6da13b] text-white border-b-4 border-[#3e6826] active:border-b-0 active:translate-y-1 font-minecraft text-xs">ACCEPT</button>
                     </form>
                     <form action={declineInvite}>
                       <input type="hidden" name="memberId" value={invite.id} />
-                      <button className="px-4 py-2 bg-[#aa0000] hover:bg-[#880000] text-white border-b-4 border-[#660000] active:border-b-0 active:translate-y-1 text-xs font-bold transition-all font-minecraft">
-                        DENY
-                      </button>
+                      <button className="px-3 py-2 bg-[#aa0000] hover:bg-[#cc0000] text-white border-b-4 border-[#660000] active:border-b-0 active:translate-y-1 font-minecraft text-xs">DENY</button>
                     </form>
                   </div>
                 </div>
@@ -96,51 +107,58 @@ export default async function DashboardPage() {
 
         {/* ⛏️ WORLD GRID */}
         {activeWorlds.length === 0 ? (
-           <div className="flex flex-col items-center justify-center h-64 text-zinc-600 gap-4 border-4 border-dashed border-[#1a1a1a] bg-[#0a0a0a]/50 rounded-lg">
-              <p className="font-minecraft text-xl">No worlds found.</p>
-              <p className="text-sm font-mono text-zinc-700">Start digging below...</p>
+           <div className="flex flex-col items-center justify-center h-64 text-zinc-600 gap-4 border-4 border-dashed border-[#333] bg-black/30 rounded-lg">
+              <p className="font-minecraft text-xl text-[#555]">No worlds yet.</p>
            </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {activeWorlds.map((entry) => {
-              // 💎 Dynamic Styling based on Role
               const isOwner = entry.role === 'owner';
-              const accentColor = isOwner ? "border-[#00e1ff]" : "border-[#a1a1a1]"; // Diamond vs Iron
-              const glowColor = isOwner ? "shadow-[0_0_15px_rgba(0,225,255,0.15)]" : "shadow-[0_0_10px_rgba(255,255,255,0.05)]";
-              const labelColor = isOwner ? "text-[#00e1ff] bg-[#00e1ff]/10" : "text-zinc-400 bg-zinc-800";
+              
+              // 🎨 DYNAMIC THEME (Diamond vs Iron)
+              const theme = isOwner 
+                ? {
+                    border: "border-[#00aaaa]", 
+                    bg: "bg-[#00aaaa]/10", 
+                    text: "text-[#00aaaa]",
+                    btnBg: "bg-[#00aaaa]",
+                    btnHover: "hover:bg-[#00cccc]",
+                    btnBorder: "border-[#007777]"
+                  }
+                : {
+                    border: "border-[#888888]", 
+                    bg: "bg-[#888888]/10", 
+                    text: "text-[#cccccc]",
+                    btnBg: "bg-[#555555]",
+                    btnHover: "hover:bg-[#666666]",
+                    btnBorder: "border-[#333333]"
+                  };
 
               return (
-                <div key={entry.id} className={`group relative bg-[#151515] border-2 ${accentColor} ${glowColor} transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl`}>
+                <div key={entry.id} className={`group relative bg-[#111] border-4 ${theme.border} shadow-[8px_8px_0_#000] transition-transform hover:-translate-y-1`}>
                   
-                  {/* Ore Texture (CSS Pattern) */}
-                  <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: `radial-gradient(circle, #fff 1px, transparent 1px)`, backgroundSize: '16px 16px' }}></div>
-
-                  {/* Card Content */}
-                  <div className="h-32 bg-linear-to-br from-[#1a1a1a] to-[#0f0f0f] relative p-6 flex flex-col justify-end border-b-2 border-[#222]">
-                     <div className={`absolute top-4 right-4 text-[10px] uppercase font-bold tracking-wider px-2 py-1 font-minecraft border ${labelColor}`}>
+                  {/* Card Header */}
+                  <div className={`h-32 ${theme.bg} relative p-6 flex flex-col items-center justify-center border-b-4 ${theme.border}`}>
+                     <div className={`absolute top-0 left-0 px-2 py-1 text-[10px] font-bold font-minecraft uppercase bg-black ${theme.text}`}>
                         {isOwner ? 'OP' : 'Member'}
                      </div>
                      
-                     <h3 className="font-minecraft text-2xl text-white truncate drop-shadow-md z-10 group-hover:scale-[1.02] transition-transform origin-left">
+                     <h3 className={`font-minecraft text-2xl ${theme.text} text-center drop-shadow-md`}>
                        {entry.world.name}
                      </h3>
-                     {/* "Ore" specs on hover */}
-                     {isOwner && <div className="absolute top-2 left-2 w-1 h-1 bg-[#00e1ff] shadow-[0_0_5px_#00e1ff] opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>}
-                     {isOwner && <div className="absolute bottom-10 right-10 w-1.5 h-1.5 bg-[#00e1ff] shadow-[0_0_8px_#00e1ff] opacity-0 group-hover:opacity-100 transition-opacity duration-700 delay-75"></div>}
                   </div>
 
                   {/* Actions */}
                   <div className="p-4 flex gap-3 items-center bg-[#0a0a0a]">
                     <Link href={`/dashboard/world/${entry.world.id}`} className="flex-1">
-                      <button className="w-full py-3 bg-[#333] hover:bg-[#444] text-white font-minecraft border-b-4 border-[#111] active:border-b-0 active:translate-y-1 transition-all text-center flex items-center justify-center gap-2 group-hover:bg-[#5b8731] group-hover:border-[#3e6826]">
-                         <span className="text-sm">ENTER WORLD</span>
+                      <button className={`w-full py-3 ${theme.btnBg} ${theme.btnHover} text-white font-minecraft border-b-4 ${theme.btnBorder} active:border-b-0 active:translate-y-1 transition-all text-center flex items-center justify-center gap-2`}>
+                         <span className="text-sm font-bold shadow-sm">ENTER WORLD</span>
                       </button>
                     </Link>
 
-                    {/* Only Owners get the Settings Gear */}
                     {isOwner && (
                        <Link href={`/dashboard/settings/${entry.world.id}`}>
-                         <button className="h-12 w-12 flex items-center justify-center bg-[#222] hover:bg-[#333] text-zinc-500 hover:text-white border-b-4 border-[#111] active:border-b-0 active:translate-y-1 transition-all" title="World Settings">
+                         <button className="h-12 w-12 flex items-center justify-center bg-[#222] hover:bg-[#333] text-[#00aaaa] border-b-4 border-[#111] active:border-b-0 active:translate-y-1 transition-all" title="Settings">
                            ⚙️
                          </button>
                        </Link>
@@ -153,19 +171,15 @@ export default async function DashboardPage() {
         )}
       </main>
 
-      {/* 📦 OBSIDIAN HOTBAR */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4">
-         <div className="flex items-center justify-center gap-2 p-3 bg-[#120c18] border-4 border-[#2b204a] shadow-[0_10px_30px_rgba(0,0,0,0.8)] relative">
-            {/* Obsidian Texture */}
-            <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%236a4c9c' fill-opacity='0.4'%3E%3Cpath d='M0 0h20L0 20z'/%3E%3C/g%3E%3C/svg%3E")` }}></div>
-            
+      {/* 🔮 OBSIDIAN HOTBAR (Floating above Lava) */}
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-full max-w-sm px-4">
+         <div className="flex items-center justify-center p-2 bg-[#0a0710] border-4 border-[#3c2a6b] shadow-[0_0_20px_#3c2a6b] relative">
             <Link href="/dashboard/new" className="relative z-10 w-full">
-               <button className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-[#5b8731] hover:bg-[#6da13b] text-white font-minecraft border-b-4 border-[#2f4f13] active:border-b-0 active:translate-y-1 active:mt-1 transition-all shadow-lg group">
-                  <span className="text-2xl leading-none drop-shadow-md group-hover:rotate-90 transition-transform duration-300">+</span>
-                  <span className="text-lg drop-shadow-md tracking-wide">CREATE NEW WORLD</span>
+               <button className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-[#1a122e] hover:bg-[#281b45] text-[#bda3ff] font-minecraft border-b-4 border-[#0d0917] active:border-b-0 active:translate-y-1 active:mt-1 transition-all group">
+                  <span className="text-2xl leading-none group-hover:rotate-90 transition-transform duration-300">+</span>
+                  <span className="text-lg tracking-wide">CREATE NEW WORLD</span>
                </button>
             </Link>
-
          </div>
       </div>
 
