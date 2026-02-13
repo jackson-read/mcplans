@@ -1,119 +1,112 @@
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
-
 import { auth } from "@clerk/nextjs/server";
-import { UserButton } from "@clerk/nextjs";
-import { db } from "@/db";
-import { members } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { redirect } from "next/navigation";
 import Link from "next/link";
-import { deletePlan, acceptInvite, declineInvite } from "@/app/actions";
 
-export default async function DashboardPage() {
+export default async function HomePage() {
   const { userId } = await auth();
 
-  // 1. Loading State (Instead of "Session Lost")
-  if (!userId) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-zinc-950">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-zinc-500 font-bold animate-pulse">Loading World Data...</p>
-        </div>
-      </div>
-    );
+  if (userId) {
+    redirect("/dashboard");
   }
 
-  // 2. Fetch Data
-  const [myWorlds, pendingInvites] = await Promise.all([
-    db.query.members.findMany({
-      where: and(eq(members.userId, userId), eq(members.status, "accepted")),
-      with: { world: true },
-    }),
-    db.query.members.findMany({
-      where: and(eq(members.userId, userId), eq(members.status, "pending")),
-      with: { world: true },
-    })
-  ]);
+  const btnBase = "relative inline-flex items-center justify-center w-48 py-3 text-xl text-white border-2 border-b-4 active:border-b-2 active:translate-y-1 transition-all font-minecraft shadow-sm";
 
   return (
-    <div className="min-h-screen p-8 max-w-5xl mx-auto font-sans bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-[#87CEEB] text-white p-8 text-center font-sans relative overflow-hidden">
       
-      {/* Header */}
-      <header className="flex justify-between items-center mb-12">
-        <h1 className="text-3xl font-bold tracking-tight">Your Worlds</h1>
-        <UserButton afterSignOutUrl="/" />
-      </header>
+      {/* ☁️ Clouds (Pixelated) */}
+      <div className="absolute top-10 left-10 w-32 h-12 bg-white/80 opacity-80 hidden md:block"></div>
+      <div className="absolute top-24 right-20 w-48 h-16 bg-white/80 opacity-60 hidden md:block"></div>
 
-      {/* 📬 Pending Invites */}
-      {pendingInvites.length > 0 && (
-         <div className="mb-10 p-6 bg-amber-50 border-l-4 border-amber-500 rounded-r-xl dark:bg-amber-900/10">
-           <h2 className="font-bold text-amber-800 dark:text-amber-400 mb-4">📬 Pending Invites</h2>
-           <div className="grid gap-3">
-             {pendingInvites.map(i => (
-               <div key={i.id} className="flex items-center justify-between bg-white dark:bg-zinc-900 p-4 rounded-lg shadow-sm">
-                 <span className="font-medium">{i.world.name}</span>
-                 <div className="flex gap-2">
-                   <form action={acceptInvite}>
-                     <input type="hidden" name="memberId" value={i.id}/>
-                     <button className="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors">Accept</button>
-                   </form>
-                   <form action={declineInvite}>
-                     <input type="hidden" name="memberId" value={i.id}/>
-                     <button className="bg-zinc-200 hover:bg-zinc-300 text-zinc-700 px-4 py-2 rounded-lg text-sm font-bold transition-colors">Decline</button>
-                   </form>
-                 </div>
-               </div>
-             ))}
-           </div>
-         </div>
-      )}
-
-      {/* 🌍 World Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* Create New Card */}
-        <Link href="/dashboard/new" className="group">
-          <div className="h-full p-8 border-2 border-dashed border-zinc-300 dark:border-zinc-700 rounded-2xl flex flex-col items-center justify-center text-center hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors">
-            <span className="text-4xl mb-2 group-hover:scale-110 transition-transform">➕</span>
-            <span className="font-bold">Create World</span>
-          </div>
-        </Link>
-
-        {/* Existing Worlds */}
-        {myWorlds.map((entry) => (
-          <div key={entry.id} className="flex flex-col justify-between p-6 border border-zinc-200 dark:border-zinc-800 rounded-2xl bg-white dark:bg-zinc-900 shadow-sm hover:shadow-md transition-shadow">
-            <div>
-              <div className="flex justify-between items-start mb-2">
-                <h3 className="text-xl font-bold truncate">{entry.world.name}</h3>
-                {entry.role === 'owner' && (
-                   <form action={deletePlan}>
-                     <input type="hidden" name="id" value={entry.world.id}/>
-                     <button className="text-red-500 hover:text-red-600 text-xs font-bold uppercase tracking-wider">Delete</button>
-                   </form>
-                )}
-              </div>
-              <span className="inline-block px-2 py-1 bg-zinc-100 dark:bg-zinc-800 text-xs font-semibold rounded uppercase tracking-wide text-zinc-500 mb-6">
-                {entry.role}
-              </span>
-            </div>
-            
-            <div className="flex gap-3 mt-auto">
-              <Link href={`/dashboard/invite/${entry.world.id}`} className="flex-1">
-                <button className="w-full py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-lg text-sm font-medium transition-colors">Invite</button>
-              </Link>
-              <Link href={`/dashboard/world/${entry.world.id}`} className="flex-1">
-                <button className="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-medium transition-colors">Enter &rarr;</button>
-              </Link>
-            </div>
-          </div>
-        ))}
+      <div className="relative z-10 mb-20">
+        <h1 className="text-7xl font-minecraft mb-2 drop-shadow-[4px_4px_0_rgba(0,0,0,0.2)]">
+          MC <span className="text-[#5b8731] text-shadow-sm">PLANS</span>
+        </h1>
+        <p className="text-2xl text-white/90 max-w-lg mb-12 font-minecraft drop-shadow-md">
+          Plan builds. Invite friends. Conquer.
+        </p>
+        
+        <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+          <Link href="/sign-in">
+            <button className={`${btnBase} bg-[#a07449] border-t-[#bc986e] border-l-[#bc986e] border-r-[#5e3f22] border-b-[#422d1a] hover:bg-[#8f663d]`}>
+              Sign In
+            </button>
+          </Link>
+          <Link href="/sign-up">
+            <button className={`${btnBase} bg-[#5b8731] border-t-[#7ecb46] border-l-[#7ecb46] border-r-[#3e6826] border-b-[#2f4f1d] hover:bg-[#4a6e28]`}>
+              Get Started
+            </button>
+          </Link>
+        </div>
       </div>
       
-      {myWorlds.length === 0 && (
-        <div className="col-span-full mt-10 text-center p-8 bg-zinc-50 dark:bg-zinc-900 rounded-2xl">
-          <p className="text-zinc-500">You don't have any worlds yet. Click "Create World" to start!</p>
+      {/* 🌸 THE GROUND LAYER */}
+      <div className="fixed bottom-0 w-full flex flex-col items-center">
+        
+        {/* Flower Row (Sitting exactly on the grass) */}
+        <div className="flex justify-center gap-16 w-full max-w-4xl px-10 items-end">
+          
+          {/* 🌹 POPPY (Pixel Art SVG) */}
+          <svg width="48" height="48" viewBox="0 0 16 16" shapeRendering="crispEdges" className="mb-[-4px]">
+            {/* Stem */}
+            <rect x="7" y="10" width="2" height="6" fill="#3e6826" />
+            <rect x="6" y="11" width="1" height="1" fill="#3e6826" />
+            <rect x="9" y="12" width="1" height="2" fill="#3e6826" />
+            {/* Petals */}
+            <rect x="5" y="6" width="6" height="5" fill="#e01e1e" />
+            <rect x="4" y="7" width="1" height="3" fill="#e01e1e" />
+            <rect x="11" y="7" width="1" height="3" fill="#e01e1e" />
+            {/* Center */}
+            <rect x="7" y="8" width="2" height="2" fill="#2d2d2d" />
+          </svg>
+
+          {/* 🌼 DANDELION (Pixel Art SVG) */}
+          <svg width="48" height="48" viewBox="0 0 16 16" shapeRendering="crispEdges" className="mb-[-4px]">
+            {/* Stem */}
+            <rect x="7" y="10" width="2" height="6" fill="#3e6826" />
+            <rect x="5" y="12" width="2" height="1" fill="#3e6826" />
+            {/* Petals */}
+            <rect x="6" y="6" width="4" height="4" fill="#ffeb3b" />
+            <rect x="5" y="7" width="1" height="2" fill="#ffeb3b" />
+            <rect x="10" y="7" width="1" height="2" fill="#ffeb3b" />
+            <rect x="7" y="5" width="2" height="1" fill="#ffeb3b" />
+          </svg>
+
+          {/* 🌾 TALL GRASS */}
+          <svg width="48" height="48" viewBox="0 0 16 16" shapeRendering="crispEdges" className="mb-[-4px] hidden sm:block">
+            <rect x="8" y="6" width="1" height="10" fill="#3e6826" />
+            <rect x="6" y="9" width="1" height="7" fill="#3e6826" />
+            <rect x="10" y="10" width="1" height="6" fill="#3e6826" />
+          </svg>
+
+           {/* 🌹 ANOTHER POPPY */}
+           <svg width="48" height="48" viewBox="0 0 16 16" shapeRendering="crispEdges" className="mb-[-4px] hidden sm:block">
+            <rect x="7" y="10" width="2" height="6" fill="#3e6826" />
+            <rect x="5" y="6" width="6" height="5" fill="#e01e1e" />
+            <rect x="4" y="7" width="1" height="3" fill="#e01e1e" />
+            <rect x="11" y="7" width="1" height="3" fill="#e01e1e" />
+            <rect x="7" y="8" width="2" height="2" fill="#2d2d2d" />
+          </svg>
         </div>
-      )}
+
+        {/* 🟩 The Grass Block Footer (Textured Look) */}
+        <div className="w-full h-24 bg-[#5d4037] border-t-[16px] border-[#5b8731] relative">
+            {/* The "Green Side" of the grass block hanging down */}
+            <div className="absolute top-0 left-0 w-full h-4 overflow-hidden">
+                <div className="w-full h-2 bg-[#5b8731]"></div>
+                {/* Random pixel noise for grass overhang */}
+                <div className="flex w-full">
+                     {/* Creating a jagged pattern using CSS borders would be complex, 
+                         so we use a simple dashed border to simulate pixel overhang */}
+                     <div className="w-full border-t-4 border-dashed border-[#5b8731] mt-[-2px] opacity-100"></div>
+                </div>
+            </div>
+            
+            <p className="text-center mt-8 text-[#8d6e63] font-minecraft text-sm opacity-50">
+                Not affiliated with Mojang or Microsoft
+            </p>
+        </div>
+      </div>
     </div>
   );
 }

@@ -23,7 +23,7 @@ export default async function HomePage() {
           MC <span className="text-[#5b8731] text-shadow-sm">PLANS</span>
         </h1>
         <p className="text-2xl text-white/90 max-w-lg mb-12 font-minecraft drop-shadow-md">
-          Plan builds. Invite friends. Conquer.
+          Minecraft planning made simple.
         </p>
         
         <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
@@ -101,10 +101,6 @@ export default async function HomePage() {
                      <div className="w-full border-t-4 border-dashed border-[#5b8731] mt-[-2px] opacity-100"></div>
                 </div>
             </div>
-            
-            <p className="text-center mt-8 text-[#8d6e63] font-minecraft text-sm opacity-50">
-                Not affiliated with Mojang or Microsoft
-            </p>
         </div>
       </div>
     </div>
