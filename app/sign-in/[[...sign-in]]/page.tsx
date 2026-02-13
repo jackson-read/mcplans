@@ -1,20 +1,19 @@
-import { SignIn } from "@clerk/nextjs";
+import { SignIn } from "@clerk/nextjs"; // <--- CHANGE 1: Import SignIn
 import Link from "next/link";
 
 export default function SignInPage() {
   return (
     <div className="min-h-screen bg-[#87CEEB] flex flex-col items-center justify-center relative overflow-hidden">
       
-      {/* ☁️ Background Clouds (Identical to Sign Up) */}
+      {/* ☁️ Background Clouds */}
       <div className="absolute top-40 right-40 w-40 h-14 bg-white/40 blur-xl rounded-full"></div>
       <div className="absolute bottom-20 left-20 w-56 h-20 bg-white/30 blur-2xl rounded-full"></div>
       
-      {/* 🚀 Floating Container */}
       <div className="animate-float z-10">
         <div className="bg-[#e0f7fa] p-2 border-4 border-white shadow-2xl rounded-xl relative">
           
-          {/* 🪟 Header: "Server Connection" */}
           <div className="bg-[#8b8b8b] border-b-4 border-[#555555] p-2 mb-2 flex justify-between items-center">
+            {/* <--- CHANGE 2: The Title Text */}
             <span className="font-minecraft text-white drop-shadow-md ml-2">Server Connection</span>
              <Link href="/">
               <button className="w-6 h-6 bg-[#ff5555] border-2 border-white text-white font-bold leading-none flex items-center justify-center hover:bg-[#ff0000]">
@@ -23,7 +22,7 @@ export default function SignInPage() {
             </Link>
           </div>
 
-          {/* 🔑 Clerk Sign In Component */}
+          {/* <--- CHANGE 3: The Component itself */}
           <SignIn appearance={{
             elements: {
               card: "shadow-none bg-transparent",
@@ -36,8 +35,6 @@ export default function SignInPage() {
             }
           }} />
         </div>
-        
-        {/* 🏝️ Dirt Bottom */}
         <div className="w-[90%] mx-auto h-4 bg-[#5d4037] border-b-4 border-[#3e2723] rounded-b-lg opacity-80"></div>
       </div>
     </div>
