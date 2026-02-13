@@ -28,7 +28,7 @@ export default async function DashboardPage() {
   return (
     <div className="min-h-screen p-8 font-minecraft bg-[#1e1e1e] text-white">
       <div className="max-w-5xl mx-auto bg-[#c6c6c6] border-4 border-black p-2 shadow-2xl">
-        <div className="bg-[#c6c6c6] border-t-4 border-l-4 border-white border-b-4 border-r-4 border-[#555555] p-6 min-h-[80vh]">
+        <div className="bg-[#c6c6c6] border-t-4 border-l-4 border-white border-b-4 border-r-4 p-6 min-h-[80vh]">
           
           <header className="flex justify-between items-end mb-8 border-b-2 border-[#555555] pb-4">
             <div>
@@ -42,14 +42,14 @@ export default async function DashboardPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <Link href="/dashboard/new" className="group">
-              <div className="h-40 bg-[#8b8b8b] border-t-4 border-l-4 border-[#373737] border-b-4 border-r-4 border-white p-6 flex flex-col items-center justify-center hover:bg-[#9c9c9c] transition-colors relative">
+              <div className="h-40 bg-[#8b8b8b] border-t-4 border-l-4 border-b-4 border-r-4 border-white p-6 flex flex-col items-center justify-center hover:bg-[#9c9c9c] transition-colors relative">
                 <span className="text-6xl text-[#ffffff] opacity-50">+</span>
                 <span className="text-[#e0e0e0] mt-2">Create New</span>
               </div>
             </Link>
 
             {myWorlds.map((entry) => (
-              <div key={entry.id} className="h-40 bg-[#8b8b8b] border-t-4 border-l-4 border-[#373737] border-b-4 border-r-4 border-white p-4 flex flex-col justify-between hover:bg-[#9c9c9c] transition-colors relative">
+              <div key={entry.id} className="h-40 bg-[#8b8b8b] border-t-4 border-l-4 border-b-4 border-r-4 border-white p-4 flex flex-col justify-between hover:bg-[#9c9c9c] transition-colors relative">
                 <h3 className="text-2xl text-white drop-shadow-md truncate">{entry.world.name}</h3>
                 <div className="flex justify-end gap-2">
                   <Link href={`/dashboard/world/${entry.world.id}`}>
