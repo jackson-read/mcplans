@@ -13,17 +13,36 @@ export default async function SettingsPage({ params }: { params: { id: string } 
   const worldId = parseInt(params.id);
   if (isNaN(worldId)) redirect("/dashboard");
 
-  // 1. Fetch World & Verify Ownership
+  // 1. Fetch World
   const world = await db.query.worlds.findFirst({
     where: eq(worlds.id, worldId),
-    with: {
-      members: true, // Get the list of players for the members section
-    }
+    with: { members: true }
   });
 
-  // 🛡️ SECURITY CHECK: Redirect if world doesn't exist OR you aren't the ownerId
+  // 🛡️ DEBUG SECURITY CHECK
+  // Instead of redirecting instantly, we show why it's failing.
   if (!world || world.ownerId !== userId) {
-    redirect("/dashboard");
+    return (
+      <div className="min-h-screen bg-[#121212] flex items-center justify-center p-6">
+        <div className="max-w-md w-full bg-zinc-900 border border-red-900/50 p-8 rounded-2xl shadow-2xl">
+          <h1 className="text-red-500 font-minecraft text-2xl mb-4">Access Denied</h1>
+          <div className="space-y-4 text-sm font-mono text-zinc-400">
+            <p>Reason: {!world ? "World not found" : "ID Mismatch"}</p>
+            <div className="p-3 bg-black rounded border border-zinc-800">
+              <p className="text-zinc-500 text-[10px] uppercase mb-1">Your Clerk ID:</p>
+              <p className="text-white break-all">{userId}</p>
+            </div>
+            <div className="p-3 bg-black rounded border border-zinc-800">
+              <p className="text-zinc-500 text-[10px] uppercase mb-1">Database Owner ID:</p>
+              <p className="text-white break-all">{world?.ownerId || "NULL"}</p>
+            </div>
+          </div>
+          <Link href="/dashboard" className="mt-8 block text-center py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl transition-all font-minecraft">
+            Return to Dashboard
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   return (

@@ -13,17 +13,17 @@ export async function createPlan(formData: FormData) {
 
   const name = formData.get("name") as string;
 
-  // 1. Create the World (Adding ownerId from your schema)
+  // 1. Create the World - explicitly setting ownerId
   const [newWorld] = await db.insert(worlds).values({
     name: name,
-    ownerId: userId, // 👈 Essential for your schema!
+    ownerId: userId, // 👈 CRITICAL: This must match your Clerk userId
   }).returning();
 
-  // 2. Add yourself as a member with the 'owner' role
+  // 2. Add yourself as a member with 'owner' role as backup
   await db.insert(members).values({
     userId: userId,
     worldId: newWorld.id,
-    role: "owner", // 👈 This is what the settings page looks for
+    role: "owner", 
     status: "accepted"
   });
 
