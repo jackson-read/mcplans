@@ -1,29 +1,42 @@
-import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/nextjs'
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+import Link from "next/link";
 
-export default function Home() {
+export default async function HomePage() {
+  const { userId } = await auth();
+
+  // 🚦 TRAFFIC COP LOGIC 🚦
+  // If the user is logged in, send them straight to the real dashboard!
+  if (userId) {
+    redirect("/dashboard");
+  }
+
+  // If they are NOT logged in, show the Landing Page
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        {/* This shows ONLY when the user is logged out */}
-        <SignedOut>
-          <h1 className="text-3xl font-semibold">Welcome to MC Plans</h1>
-          <p className="text-lg text-zinc-600">Sign in to start managing your Minecraft worlds.</p>
-          <SignInButton mode="modal">
-            <button className="h-12 px-8 rounded-full bg-black text-white dark:bg-white dark:text-black">
-              Sign In
-            </button>
-          </SignInButton>
-        </SignedOut>
-
-        {/* This shows ONLY when the user is logged in */}
-        <SignedIn>
-          <div className="flex w-full items-center justify-between">
-            <h1 className="text-3xl font-semibold">Your Dashboard</h1>
-            <UserButton />
-          </div>
-          <p className="mt-4">You are logged in! Ready to plan some builds?</p>
-        </SignedIn>
-      </main>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-zinc-950 text-white p-8 text-center font-sans">
+      <h1 className="text-6xl font-black tracking-tighter mb-6">
+        MC <span className="text-green-500">PLANS</span>
+      </h1>
+      <p className="text-xl text-zinc-400 max-w-lg mb-10">
+        The ultimate tool for planning your Minecraft empire. 
+        Track builds, invite friends, and conquer the server.
+      </p>
+      
+      <div className="flex gap-4">
+        <Link href="/sign-in">
+          <button className="px-8 py-4 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold text-lg transition-transform hover:scale-105">
+            Sign In
+          </button>
+        </Link>
+        <Link href="/sign-up">
+          <button className="px-8 py-4 bg-zinc-800 hover:bg-zinc-700 rounded-xl font-bold text-lg transition-transform hover:scale-105">
+            Get Started
+          </button>
+        </Link>
+      </div>
+      
+      {/* Decorative 'Dirt Block' Footer */}
+      <div className="fixed bottom-0 w-full h-16 bg-[#5d4037] border-t-8 border-[#4caf50]"></div>
     </div>
   );
 }
