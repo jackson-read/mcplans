@@ -1,14 +1,16 @@
 import { auth } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
 import Link from "next/link";
+import WorldLoader from "./components/WorldLoader"; // Import the new loader
 
 export default async function HomePage() {
   const { userId } = await auth();
 
+  // ✅ IF LOGGED IN: Show the "Loading Terrain" screen
   if (userId) {
-    redirect("/dashboard");
+    return <WorldLoader />;
   }
 
+  // 🧱 Button Styles
   const btnBase = "relative inline-flex items-center justify-center w-48 py-3 text-xl text-white border-2 border-b-4 active:border-b-2 active:translate-y-1 transition-all font-minecraft shadow-sm";
 
   return (
@@ -43,29 +45,24 @@ export default async function HomePage() {
       {/* 🌸 THE GROUND LAYER */}
       <div className="fixed bottom-0 w-full flex flex-col items-center">
         
-        {/* Flower Row (Sitting exactly on the grass) */}
+        {/* Flower Row */}
         <div className="flex justify-center gap-16 w-full max-w-4xl px-10 items-end">
           
-          {/* 🌹 POPPY (Pixel Art SVG) */}
+          {/* 🌹 POPPY */}
           <svg width="48" height="48" viewBox="0 0 16 16" shapeRendering="crispEdges" className="-mb-1">
-            {/* Stem */}
             <rect x="7" y="10" width="2" height="6" fill="#3e6826" />
             <rect x="6" y="11" width="1" height="1" fill="#3e6826" />
             <rect x="9" y="12" width="1" height="2" fill="#3e6826" />
-            {/* Petals */}
             <rect x="5" y="6" width="6" height="5" fill="#e01e1e" />
             <rect x="4" y="7" width="1" height="3" fill="#e01e1e" />
             <rect x="11" y="7" width="1" height="3" fill="#e01e1e" />
-            {/* Center */}
             <rect x="7" y="8" width="2" height="2" fill="#2d2d2d" />
           </svg>
 
-          {/* 🌼 DANDELION (Pixel Art SVG) */}
+          {/* 🌼 DANDELION */}
           <svg width="48" height="48" viewBox="0 0 16 16" shapeRendering="crispEdges" className="-mb-1">
-            {/* Stem */}
             <rect x="7" y="10" width="2" height="6" fill="#3e6826" />
             <rect x="5" y="12" width="2" height="1" fill="#3e6826" />
-            {/* Petals */}
             <rect x="6" y="6" width="4" height="4" fill="#ffeb3b" />
             <rect x="5" y="7" width="1" height="2" fill="#ffeb3b" />
             <rect x="10" y="7" width="1" height="2" fill="#ffeb3b" />
@@ -89,18 +86,15 @@ export default async function HomePage() {
           </svg>
         </div>
 
-        {/* 🟩 The Grass Block Footer (Textured Look) */}
+        {/* 🟩 The Grass Block Footer */}
         <div className="w-full h-24 bg-[#5d4037] border-t-16 border-[#5b8731] relative">
-            {/* The "Green Side" of the grass block hanging down */}
             <div className="absolute top-0 left-0 w-full h-4 overflow-hidden">
                 <div className="w-full h-2 bg-[#5b8731]"></div>
-                {/* Random pixel noise for grass overhang */}
                 <div className="flex w-full">
-                     {/* Creating a jagged pattern using CSS borders would be complex, 
-                         so we use a simple dashed border to simulate pixel overhang */}
                      <div className="w-full border-t-4 border-dashed border-[#5b8731] -mt-0.5 opacity-100"></div>
                 </div>
             </div>
+            
         </div>
       </div>
     </div>
