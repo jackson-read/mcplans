@@ -3,10 +3,14 @@ import { db } from "@/db";
 import { worlds } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
-export default async function SettingsPage({ params }: { params: { id: string } }) {
-  // 1. Check Auth
+// ⚠️ Note the Type Change: params is now a Promise!
+export default async function SettingsPage({ params }: { params: Promise<{ id: string }> }) {
+  
+  // 1. Await the params (Next.js 15 Fix)
+  const { id } = await params;
+  const worldId = parseInt(id);
+
   const { userId } = await auth();
-  const worldId = parseInt(params.id);
 
   // 2. Safe Database Fetch
   let world = null;
@@ -25,7 +29,7 @@ export default async function SettingsPage({ params }: { params: { id: string } 
   return (
     <div className="min-h-screen bg-black text-white p-12 font-mono">
       <h1 className="text-3xl text-green-500 mb-8 border-b border-green-900 pb-4">
-        🔍 DIAGNOSTIC MODE
+        🔍 DIAGNOSTIC MODE (Next.js 15 Fixed)
       </h1>
 
       <div className="space-y-6 max-w-2xl">
@@ -39,7 +43,8 @@ export default async function SettingsPage({ params }: { params: { id: string } 
         {/* World ID Check */}
         <div className="bg-zinc-900 p-4 rounded border border-zinc-800">
            <p className="text-zinc-500 mb-1">TARGET WORLD ID</p>
-           <code className="text-yellow-400 block">{worldId}</code>
+           {/* If this shows a number now, we are winning! */}
+           <code className="text-yellow-400 block">{isNaN(worldId) ? "NaN (STILL BROKEN)" : worldId}</code>
         </div>
 
         {/* Database Result */}
