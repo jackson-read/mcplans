@@ -1,26 +1,20 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer components {
+  .mc-btn {
+    @apply relative inline-flex items-center justify-center px-6 py-3 font-minecraft text-xl text-white bg-mc-stone border-2 border-b-4 active:border-b-2 active:translate-y-1 transition-all;
+    /* The 3D Bevel Effect */
+    border-color: #d0d1d4 #3a3a3a #282828 #d0d1d4; /* Top/Left=Light, Bottom/Right=Dark */
+    text-shadow: 2px 2px #202020;
   }
-}
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  .mc-btn:hover {
+    @apply bg-[#8a8a8a] border-b-[5px]; /* Light up on hover */
+  }
+
+  .mc-btn-green {
+    @apply mc-btn bg-mc-grass border-[#7ecb46] border-b-[#3e6826];
+  }
 }

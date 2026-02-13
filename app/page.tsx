@@ -19,17 +19,17 @@ export default async function HomePage() {
       </h1>
       <p className="text-xl text-zinc-400 max-w-lg mb-10">
         The ultimate tool for planning your Minecraft empire. 
-        Track builds, invite friends, and conquer the server.
+        Track builds, invite friends, and conquer the server
       </p>
       
       <div className="flex gap-4">
         <Link href="/sign-in">
-          <button className="px-8 py-4 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold text-lg transition-transform hover:scale-105">
+          <button className="mc-btn w-48">
             Sign In
           </button>
         </Link>
         <Link href="/sign-up">
-          <button className="px-8 py-4 bg-zinc-800 hover:bg-zinc-700 rounded-xl font-bold text-lg transition-transform hover:scale-105">
+          <button className="mc-btn mc-btn-green w-48">
             Get Started
           </button>
         </Link>
