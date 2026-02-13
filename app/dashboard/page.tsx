@@ -1,110 +1,64 @@
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 import { auth } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
+import { UserButton } from "@clerk/nextjs";
+import { db } from "@/db";
+import { members } from "@/db/schema";
+import { eq, and } from "drizzle-orm";
 import Link from "next/link";
 
-export default async function HomePage() {
+export default async function DashboardPage() {
   const { userId } = await auth();
 
-  if (userId) {
-    redirect("/dashboard");
-  }
+  // If NOT logged in, let Middleware handle it or show a basic "Access Denied"
+  if (!userId) return <div>Access Denied. Please Sign In.</div>;
 
-  const btnBase = "relative inline-flex items-center justify-center w-48 py-3 text-xl text-white border-2 border-b-4 active:border-b-2 active:translate-y-1 transition-all font-minecraft shadow-sm";
+  const [myWorlds] = await Promise.all([
+    db.query.members.findMany({
+      where: and(eq(members.userId, userId), eq(members.status, "accepted")),
+      with: { world: true },
+    }),
+  ]);
+
+  const btnBase = "relative inline-flex items-center justify-center px-4 py-2 text-lg text-white border-2 border-b-4 active:border-b-2 active:translate-y-1 transition-all font-minecraft shadow-sm";
+  const btnStone = `${btnBase} bg-[#767676] border-t-[#d0d1d4] border-l-[#d0d1d4] border-r-[#3a3a3a] border-b-[#282828] hover:bg-[#8a8a8a]`;
+  const btnGreen = `${btnBase} bg-[#5b8731] border-t-[#7ecb46] border-l-[#7ecb46] border-r-[#3e6826] border-b-[#2f4f1d] hover:bg-[#4a6e28]`;
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-[#87CEEB] text-white p-8 text-center font-sans relative overflow-hidden">
-      
-      {/* ☁️ Clouds (Pixelated) */}
-      <div className="absolute top-10 left-10 w-32 h-12 bg-white/80 opacity-80 hidden md:block"></div>
-      <div className="absolute top-24 right-20 w-48 h-16 bg-white/80 opacity-60 hidden md:block"></div>
-
-      <div className="relative z-10 mb-20">
-        <h1 className="text-7xl font-minecraft mb-2 drop-shadow-[4px_4px_0_rgba(0,0,0,0.2)]">
-          MC <span className="text-[#5b8731] text-shadow-sm">PLANS</span>
-        </h1>
-        <p className="text-2xl text-white/90 max-w-lg mb-12 font-minecraft drop-shadow-md">
-          Plan builds. Invite friends. Conquer.
-        </p>
-        
-        <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-          <Link href="/sign-in">
-            <button className={`${btnBase} bg-[#a07449] border-t-[#bc986e] border-l-[#bc986e] border-r-[#5e3f22] border-b-[#422d1a] hover:bg-[#8f663d]`}>
-              Sign In
-            </button>
-          </Link>
-          <Link href="/sign-up">
-            <button className={`${btnBase} bg-[#5b8731] border-t-[#7ecb46] border-l-[#7ecb46] border-r-[#3e6826] border-b-[#2f4f1d] hover:bg-[#4a6e28]`}>
-              Get Started
-            </button>
-          </Link>
-        </div>
-      </div>
-      
-      {/* 🌸 THE GROUND LAYER */}
-      <div className="fixed bottom-0 w-full flex flex-col items-center">
-        
-        {/* Flower Row (Sitting exactly on the grass) */}
-        <div className="flex justify-center gap-16 w-full max-w-4xl px-10 items-end">
+    <div className="min-h-screen p-8 font-minecraft bg-[#1e1e1e] text-white">
+      <div className="max-w-5xl mx-auto bg-[#c6c6c6] border-4 border-black p-2 shadow-2xl">
+        <div className="bg-[#c6c6c6] border-t-4 border-l-4 border-white border-b-4 border-r-4 border-[#555555] p-6 min-h-[80vh]">
           
-          {/* 🌹 POPPY (Pixel Art SVG) */}
-          <svg width="48" height="48" viewBox="0 0 16 16" shapeRendering="crispEdges" className="-mb-1">
-            {/* Stem */}
-            <rect x="7" y="10" width="2" height="6" fill="#3e6826" />
-            <rect x="6" y="11" width="1" height="1" fill="#3e6826" />
-            <rect x="9" y="12" width="1" height="2" fill="#3e6826" />
-            {/* Petals */}
-            <rect x="5" y="6" width="6" height="5" fill="#e01e1e" />
-            <rect x="4" y="7" width="1" height="3" fill="#e01e1e" />
-            <rect x="11" y="7" width="1" height="3" fill="#e01e1e" />
-            {/* Center */}
-            <rect x="7" y="8" width="2" height="2" fill="#2d2d2d" />
-          </svg>
-
-          {/* 🌼 DANDELION (Pixel Art SVG) */}
-          <svg width="48" height="48" viewBox="0 0 16 16" shapeRendering="crispEdges" className="-mb-1">
-            {/* Stem */}
-            <rect x="7" y="10" width="2" height="6" fill="#3e6826" />
-            <rect x="5" y="12" width="2" height="1" fill="#3e6826" />
-            {/* Petals */}
-            <rect x="6" y="6" width="4" height="4" fill="#ffeb3b" />
-            <rect x="5" y="7" width="1" height="2" fill="#ffeb3b" />
-            <rect x="10" y="7" width="1" height="2" fill="#ffeb3b" />
-            <rect x="7" y="5" width="2" height="1" fill="#ffeb3b" />
-          </svg>
-
-          {/* 🌾 TALL GRASS */}
-          <svg width="48" height="48" viewBox="0 0 16 16" shapeRendering="crispEdges" className="-mb-1 hidden sm:block">
-            <rect x="8" y="6" width="1" height="10" fill="#3e6826" />
-            <rect x="6" y="9" width="1" height="7" fill="#3e6826" />
-            <rect x="10" y="10" width="1" height="6" fill="#3e6826" />
-          </svg>
-
-           {/* 🌹 ANOTHER POPPY */}
-           <svg width="48" height="48" viewBox="0 0 16 16" shapeRendering="crispEdges" className="-mb-1 hidden sm:block">
-            <rect x="7" y="10" width="2" height="6" fill="#3e6826" />
-            <rect x="5" y="6" width="6" height="5" fill="#e01e1e" />
-            <rect x="4" y="7" width="1" height="3" fill="#e01e1e" />
-            <rect x="11" y="7" width="1" height="3" fill="#e01e1e" />
-            <rect x="7" y="8" width="2" height="2" fill="#2d2d2d" />
-          </svg>
-        </div>
-
-        {/* 🟩 The Grass Block Footer (Textured Look) */}
-        <div className="w-full h-24 bg-[#5d4037] border-t-16 border-[#5b8731] relative">
-            {/* The "Green Side" of the grass block hanging down */}
-            <div className="absolute top-0 left-0 w-full h-4 overflow-hidden">
-                <div className="w-full h-2 bg-[#5b8731]"></div>
-                {/* Random pixel noise for grass overhang */}
-                <div className="flex w-full">
-                     {/* Creating a jagged pattern using CSS borders would be complex, 
-                         so we use a simple dashed border to simulate pixel overhang */}
-                     <div className="w-full border-t-4 border-dashed border-[#5b8731] -mt-0.5 opacity-100"></div>
-                </div>
+          <header className="flex justify-between items-end mb-8 border-b-2 border-[#555555] pb-4">
+            <div>
+              <h1 className="text-4xl text-[#404040] drop-shadow-sm">Your Worlds</h1>
+              <p className="text-[#555555]">Select a world to enter</p>
             </div>
-            
-            <p className="text-center mt-8 text-[#8d6e63] font-minecraft text-sm opacity-50">
-                Not affiliated with Mojang or Microsoft
-            </p>
+            <div className="border-2 border-[#555555] bg-[#8b8b8b] p-1">
+              <UserButton afterSignOutUrl="/" />
+            </div>
+          </header>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Link href="/dashboard/new" className="group">
+              <div className="h-40 bg-[#8b8b8b] border-t-4 border-l-4 border-[#373737] border-b-4 border-r-4 border-white p-6 flex flex-col items-center justify-center hover:bg-[#9c9c9c] transition-colors relative">
+                <span className="text-6xl text-[#ffffff] opacity-50">+</span>
+                <span className="text-[#e0e0e0] mt-2">Create New</span>
+              </div>
+            </Link>
+
+            {myWorlds.map((entry) => (
+              <div key={entry.id} className="h-40 bg-[#8b8b8b] border-t-4 border-l-4 border-[#373737] border-b-4 border-r-4 border-white p-4 flex flex-col justify-between hover:bg-[#9c9c9c] transition-colors relative">
+                <h3 className="text-2xl text-white drop-shadow-md truncate">{entry.world.name}</h3>
+                <div className="flex justify-end gap-2">
+                  <Link href={`/dashboard/world/${entry.world.id}`}>
+                    <button className={`${btnGreen} text-sm py-1 px-4`}>PLAY &rarr;</button>
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
