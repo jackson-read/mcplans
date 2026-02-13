@@ -1,9 +1,65 @@
-export default function SettingsPage({ params }: { params: { id: string } }) {
+import { auth } from "@clerk/nextjs/server";
+import { db } from "@/db";
+import { worlds } from "@/db/schema";
+import { eq } from "drizzle-orm";
+
+export default async function SettingsPage({ params }: { params: { id: string } }) {
+  // 1. Check Auth
+  const { userId } = await auth();
+  const worldId = parseInt(params.id);
+
+  // 2. Safe Database Fetch
+  let world = null;
+  let errorMsg = null;
+
+  try {
+    world = await db.query.worlds.findFirst({
+      where: eq(worlds.id, worldId),
+      with: { members: true }
+    });
+  } catch (e: any) {
+    errorMsg = e.message;
+  }
+
+  // 3. Render the "X-Ray" View
   return (
-    <div className="min-h-screen bg-black text-white p-20 flex flex-col gap-4">
-      <h1 className="text-4xl font-bold text-green-500">I AM ALIVE!</h1>
-      <p className="text-xl">Checking World ID: {params.id}</p>
-      <p className="text-zinc-500 italic">If you can see this, the folder structure and routing are working.</p>
+    <div className="min-h-screen bg-black text-white p-12 font-mono">
+      <h1 className="text-3xl text-green-500 mb-8 border-b border-green-900 pb-4">
+        🔍 DIAGNOSTIC MODE
+      </h1>
+
+      <div className="space-y-6 max-w-2xl">
+        
+        {/* User Check */}
+        <div className="bg-zinc-900 p-4 rounded border border-zinc-800">
+          <p className="text-zinc-500 mb-1">CURRENT USER ID</p>
+          <code className="text-blue-400 block break-all">{userId || "NOT LOGGED IN"}</code>
+        </div>
+
+        {/* World ID Check */}
+        <div className="bg-zinc-900 p-4 rounded border border-zinc-800">
+           <p className="text-zinc-500 mb-1">TARGET WORLD ID</p>
+           <code className="text-yellow-400 block">{worldId}</code>
+        </div>
+
+        {/* Database Result */}
+        <div className="bg-zinc-900 p-4 rounded border border-zinc-800">
+          <p className="text-zinc-500 mb-1">DATABASE FETCH STATUS</p>
+          {errorMsg ? (
+            <p className="text-red-500 font-bold">CRASHED: {errorMsg}</p>
+          ) : !world ? (
+             <p className="text-red-500 font-bold">SUCCESS, BUT WORLD NOT FOUND (Result is null)</p>
+          ) : (
+             <div className="space-y-2">
+                <p className="text-green-500 font-bold">SUCCESS - DATA FOUND</p>
+                <p>World Name: <span className="text-white">{world.name}</span></p>
+                <p>Owner ID in DB: <span className={`break-all ${world.ownerId === userId ? "text-green-400" : "text-red-500"}`}>{world.ownerId || "NULL/EMPTY"}</span></p>
+                <p>Member Count: <span className="text-white">{world.members.length}</span></p>
+             </div>
+          )}
+        </div>
+
+      </div>
     </div>
   );
 }
