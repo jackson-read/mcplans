@@ -10,7 +10,7 @@ export default function SignInPage() {
       <div className="absolute bottom-40 right-20 w-48 h-16 bg-white/30 blur-2xl rounded-full"></div>
       
       {/* 🚀 The "Flying Up" Container */}
-      <div className="animate-fly-up animate-float z-10">
+      <div className="animate-float z-10">
         
         {/* The Floating Island Box */}
         <div className="bg-[#e0f7fa] p-2 border-4 border-white shadow-2xl rounded-xl relative">

@@ -47,7 +47,7 @@ export default async function HomePage() {
         <div className="flex justify-center gap-16 w-full max-w-4xl px-10 items-end">
           
           {/* 🌹 POPPY (Pixel Art SVG) */}
-          <svg width="48" height="48" viewBox="0 0 16 16" shapeRendering="crispEdges" className="mb-[-4px]">
+          <svg width="48" height="48" viewBox="0 0 16 16" shapeRendering="crispEdges" className="-mb-1">
             {/* Stem */}
             <rect x="7" y="10" width="2" height="6" fill="#3e6826" />
             <rect x="6" y="11" width="1" height="1" fill="#3e6826" />
@@ -61,7 +61,7 @@ export default async function HomePage() {
           </svg>
 
           {/* 🌼 DANDELION (Pixel Art SVG) */}
-          <svg width="48" height="48" viewBox="0 0 16 16" shapeRendering="crispEdges" className="mb-[-4px]">
+          <svg width="48" height="48" viewBox="0 0 16 16" shapeRendering="crispEdges" className="-mb-1">
             {/* Stem */}
             <rect x="7" y="10" width="2" height="6" fill="#3e6826" />
             <rect x="5" y="12" width="2" height="1" fill="#3e6826" />
@@ -73,14 +73,14 @@ export default async function HomePage() {
           </svg>
 
           {/* 🌾 TALL GRASS */}
-          <svg width="48" height="48" viewBox="0 0 16 16" shapeRendering="crispEdges" className="mb-[-4px] hidden sm:block">
+          <svg width="48" height="48" viewBox="0 0 16 16" shapeRendering="crispEdges" className="-mb-1 hidden sm:block">
             <rect x="8" y="6" width="1" height="10" fill="#3e6826" />
             <rect x="6" y="9" width="1" height="7" fill="#3e6826" />
             <rect x="10" y="10" width="1" height="6" fill="#3e6826" />
           </svg>
 
            {/* 🌹 ANOTHER POPPY */}
-           <svg width="48" height="48" viewBox="0 0 16 16" shapeRendering="crispEdges" className="mb-[-4px] hidden sm:block">
+           <svg width="48" height="48" viewBox="0 0 16 16" shapeRendering="crispEdges" className="-mb-1 hidden sm:block">
             <rect x="7" y="10" width="2" height="6" fill="#3e6826" />
             <rect x="5" y="6" width="6" height="5" fill="#e01e1e" />
             <rect x="4" y="7" width="1" height="3" fill="#e01e1e" />
@@ -90,7 +90,7 @@ export default async function HomePage() {
         </div>
 
         {/* 🟩 The Grass Block Footer (Textured Look) */}
-        <div className="w-full h-24 bg-[#5d4037] border-t-[16px] border-[#5b8731] relative">
+        <div className="w-full h-24 bg-[#5d4037] border-t-16 border-[#5b8731] relative">
             {/* The "Green Side" of the grass block hanging down */}
             <div className="absolute top-0 left-0 w-full h-4 overflow-hidden">
                 <div className="w-full h-2 bg-[#5b8731]"></div>
@@ -98,7 +98,7 @@ export default async function HomePage() {
                 <div className="flex w-full">
                      {/* Creating a jagged pattern using CSS borders would be complex, 
                          so we use a simple dashed border to simulate pixel overhang */}
-                     <div className="w-full border-t-4 border-dashed border-[#5b8731] mt-[-2px] opacity-100"></div>
+                     <div className="w-full border-t-4 border-dashed border-[#5b8731] -mt-0.5 opacity-100"></div>
                 </div>
             </div>
         </div>

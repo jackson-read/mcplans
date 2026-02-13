@@ -1,1 +1,18 @@
 @import "tailwindcss";
+
+/* 🚀 The Flying Animation */
+@keyframes flyIn {
+  0% {
+    transform: translateY(100vh) scale(0.95); /* Start way below the screen */
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0) scale(1); /* Land perfectly in place */
+    opacity: 1;
+  }
+}
+
+/* We create a standard CSS class instead of Tailwind to be safe */
+.fly-enter {
+  animation: flyIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}

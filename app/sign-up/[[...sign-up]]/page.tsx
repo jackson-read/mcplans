@@ -9,7 +9,7 @@ export default function SignUpPage() {
       <div className="absolute top-40 right-40 w-40 h-14 bg-white/40 blur-xl rounded-full"></div>
       <div className="absolute bottom-20 left-20 w-56 h-20 bg-white/30 blur-2xl rounded-full"></div>
       
-      <div className="animate-fly-up animate-float z-10">
+      <div className="animate-float z-10">
         <div className="bg-[#e0f7fa] p-2 border-4 border-white shadow-2xl rounded-xl relative">
           
           <div className="bg-[#8b8b8b] border-b-4 border-[#555555] p-2 mb-2 flex justify-between items-center">
