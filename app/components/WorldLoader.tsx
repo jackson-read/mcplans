@@ -11,7 +11,7 @@ export default function WorldLoader() {
   useEffect(() => {
     // 1. Random "Loading" phases
     const t1 = setTimeout(() => setText("Logging in..."), 600);
-    const t2 = setTimeout(() => setText("Downloading terrain..."), 1400);
+    const t2 = setTimeout(() => setText("Loading worlds..."), 1400);
     
     // 2. Redirect to Dashboard after 2.5 seconds
     const t3 = setTimeout(() => {

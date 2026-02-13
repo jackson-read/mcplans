@@ -166,3 +166,54 @@ export async function removeMember(formData: FormData) {
     revalidatePath(`/dashboard/world/${worldId}`);
   }
 }
+
+// ... (Your existing code is above here) ...
+
+// 1. Rename World
+export async function renameWorld(formData: FormData) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  const worldId = parseInt(formData.get("worldId") as string);
+  const newName = formData.get("newName") as string;
+
+  // Verify Ownership
+  const membership = await db.query.members.findFirst({
+    where: and(eq(members.userId, userId), eq(members.worldId, worldId), eq(members.role, "owner"))
+  });
+
+  if (!membership) throw new Error("Not authorized to rename this world");
+
+  await db.update(worlds)
+    .set({ name: newName })
+    .where(eq(worlds.id, worldId));
+
+  revalidatePath(`/dashboard/settings/${worldId}`);
+  revalidatePath("/dashboard");
+}
+
+// 2. Kick Member
+export async function kickMember(formData: FormData) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  const memberId = parseInt(formData.get("memberId") as string);
+
+  // Get the victim's details to find the world ID
+  const victim = await db.query.members.findFirst({
+    where: eq(members.id, memberId)
+  });
+
+  if (!victim) throw new Error("Member not found");
+
+  // Verify the requester is the OWNER of that specific world
+  const requester = await db.query.members.findFirst({
+    where: and(eq(members.userId, userId), eq(members.worldId, victim.worldId), eq(members.role, "owner"))
+  });
+
+  if (!requester) throw new Error("You must be the owner to kick players");
+
+  await db.delete(members).where(eq(members.id, memberId));
+
+  revalidatePath(`/dashboard/settings/${victim.worldId}`);
+}
