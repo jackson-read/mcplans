@@ -9,48 +9,23 @@ import { revalidatePath } from "next/cache";
 
 export async function createPlan(formData: FormData) {
   const { userId } = await auth();
-  if (!userId) throw new Error("You must be logged in!");
+  if (!userId) throw new Error("Unauthorized");
 
   const name = formData.get("name") as string;
-  const inviteUsername = formData.get("inviteUsername") as string;
 
-  let invitedUserId: string | null = null;
-  
-  if (inviteUsername && inviteUsername.trim() !== "") {
-    const client = await clerkClient();
-    const userList = await client.users.getUserList({ 
-      username: [inviteUsername] 
-    });
-
-    if (userList.data.length === 0) {
-      throw new Error(`User '${inviteUsername}' not found!`);
-    }
-    invitedUserId = userList.data[0].id;
-  }
-
-  // 1. Create the World
+  // 1. Create the World (Adding ownerId from your schema)
   const [newWorld] = await db.insert(worlds).values({
-    ownerId: userId,
     name: name,
-  }).returning({ id: worlds.id });
+    ownerId: userId, // 👈 Essential for your schema!
+  }).returning();
 
-  // 2. Add YOU as the owner (status: accepted)
+  // 2. Add yourself as a member with the 'owner' role
   await db.insert(members).values({
     userId: userId,
     worldId: newWorld.id,
-    role: "owner",
-    status: "accepted", // Owners don't need to invite themselves!
+    role: "owner", // 👈 This is what the settings page looks for
+    status: "accepted"
   });
-
-  // 3. Add friend as member (status: pending)
-  if (invitedUserId) {
-    await db.insert(members).values({
-      userId: invitedUserId,
-      worldId: newWorld.id,
-      role: "member",
-      status: "pending", // They must accept first
-    });
-  }
 
   revalidatePath("/dashboard");
   redirect("/dashboard");

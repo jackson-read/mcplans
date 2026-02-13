@@ -1,10 +1,10 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
-import { worlds, members } from "@/db/schema"; // 'plans' is the table for worlds
-import { eq, and } from "drizzle-orm";
+import { worlds, members } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import Link from "next/link";
-import { deletePlan, kickMember, renameWorld } from "@/app/actions"; // We will create these actions next!
+import { deletePlan, kickMember, renameWorld } from "@/app/actions";
 
 export default async function SettingsPage({ params }: { params: { id: string } }) {
   const { userId } = await auth();
@@ -17,13 +17,12 @@ export default async function SettingsPage({ params }: { params: { id: string } 
   const world = await db.query.worlds.findFirst({
     where: eq(worlds.id, worldId),
     with: {
-      members: true, // Get the list of players
+      members: true, // Get the list of players for the members section
     }
   });
 
-  // If world doesn't exist OR user is not the owner -> Kick them out
-  const userMember = world?.members.find(m => m.userId === userId);
-  if (!world || userMember?.role !== 'owner') {
+  // 🛡️ SECURITY CHECK: Redirect if world doesn't exist OR you aren't the ownerId
+  if (!world || world.ownerId !== userId) {
     redirect("/dashboard");
   }
 
@@ -31,8 +30,8 @@ export default async function SettingsPage({ params }: { params: { id: string } 
     <div className="min-h-screen bg-[#121212] text-white font-sans p-6 md:p-12">
       
       {/* 🔙 Back Button */}
-      <Link href="/dashboard" className="inline-flex items-center gap-2 text-zinc-500 hover:text-white mb-8 transition-colors">
-        <span>&larr;</span> Back to Dashboard
+      <Link href="/dashboard" className="inline-flex items-center gap-2 text-zinc-500 hover:text-white mb-8 transition-colors group">
+        <span className="group-hover:-translate-x-1 transition-transform">&larr;</span> Back to Dashboard
       </Link>
 
       <div className="max-w-3xl mx-auto space-y-12">
@@ -40,7 +39,7 @@ export default async function SettingsPage({ params }: { params: { id: string } 
         {/* 🏷️ Header */}
         <div>
           <h1 className="text-4xl font-minecraft text-white mb-2">World Settings</h1>
-          <p className="text-zinc-500">Manage your world, invite friends, and configure permissions.</p>
+          <p className="text-zinc-500 text-sm">Manage your world, invite friends, and configure permissions.</p>
         </div>
 
         {/* ✏️ SECTION 1: General Settings (Rename) */}
@@ -52,7 +51,7 @@ export default async function SettingsPage({ params }: { params: { id: string } 
           <form action={renameWorld} className="flex gap-4 items-end">
             <input type="hidden" name="worldId" value={worldId} />
             <div className="flex-1">
-              <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">World Name</label>
+              <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 ml-1">World Name</label>
               <input 
                 name="newName"
                 defaultValue={world.name}
@@ -60,7 +59,7 @@ export default async function SettingsPage({ params }: { params: { id: string } 
                 className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#5b8731] transition-colors font-minecraft"
               />
             </div>
-            <button className="bg-white text-black font-bold px-6 py-3 rounded-lg hover:bg-zinc-200 transition-colors">
+            <button className="bg-white text-black font-bold px-6 py-3 rounded-lg hover:bg-zinc-200 transition-all active:scale-95">
               Save
             </button>
           </form>
@@ -72,7 +71,6 @@ export default async function SettingsPage({ params }: { params: { id: string } 
             <h2 className="text-xl font-bold flex items-center gap-2">
               <span className="text-[#5b8731]">02.</span> Members
             </h2>
-            {/* Invite Button */}
             <Link href={`/dashboard/invite/${worldId}`}>
                <button className="text-sm bg-[#5b8731]/10 text-[#5b8731] border border-[#5b8731]/20 px-3 py-1.5 rounded-md hover:bg-[#5b8731]/20 transition-colors">
                  + Invite New
@@ -82,24 +80,24 @@ export default async function SettingsPage({ params }: { params: { id: string } 
 
           <div className="space-y-3">
             {world.members.map((member) => (
-              <div key={member.id} className="flex justify-between items-center p-3 bg-zinc-950/50 rounded-lg border border-zinc-800/50">
+              <div key={member.id} className="flex justify-between items-center p-4 bg-zinc-950/50 rounded-xl border border-zinc-800/50">
                 <div className="flex items-center gap-3">
-                  {/* Avatar Placeholder */}
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${member.role === 'owner' ? 'bg-[#5b8731] text-white' : 'bg-zinc-800 text-zinc-400'}`}>
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold border-2 ${member.role === 'owner' ? 'bg-[#5b8731]/20 border-[#5b8731] text-[#5b8731]' : 'bg-zinc-800 border-zinc-700 text-zinc-400'}`}>
                     {member.role === 'owner' ? 'OP' : 'PL'}
                   </div>
                   <div>
-                    {/* In a real app, you'd fetch the User's name from Clerk here. For now, we show ID or role */}
-                    <p className="text-sm text-white font-medium">Player ({member.role})</p> 
-                    <p className="text-xs text-zinc-600 font-mono">{member.userId.slice(0, 12)}...</p>
+                    <p className="text-sm text-white font-minecraft">
+                      {member.userId === userId ? "You" : "Player"} 
+                      <span className="text-zinc-600 ml-2 font-sans text-xs uppercase tracking-widest">{member.role}</span>
+                    </p> 
+                    <p className="text-[10px] text-zinc-600 font-mono truncate max-w-37.5">{member.userId}</p>
                   </div>
                 </div>
 
-                {/* Kick Button (Cannot kick yourself) */}
                 {member.userId !== userId && (
                   <form action={kickMember}>
                     <input type="hidden" name="memberId" value={member.id} />
-                    <button className="text-zinc-500 hover:text-red-500 text-sm font-medium transition-colors px-3 py-1">
+                    <button className="text-zinc-500 hover:text-red-500 text-xs font-bold uppercase tracking-tighter transition-colors px-3 py-1 border border-zinc-800 rounded hover:border-red-500/30">
                       Kick
                     </button>
                   </form>
@@ -110,18 +108,22 @@ export default async function SettingsPage({ params }: { params: { id: string } 
         </section>
 
         {/* ⚠️ SECTION 3: Danger Zone */}
-        <section className="border border-red-900/30 bg-red-950/10 rounded-2xl p-6">
+        <section className="border border-red-900/30 bg-red-950/5 rounded-2xl p-6">
           <h2 className="text-xl font-bold mb-2 text-red-500 flex items-center gap-2">
             Danger Zone
           </h2>
           <p className="text-zinc-500 text-sm mb-6">
-            Once you delete a world, there is no going back. All plans and builds will be lost forever.
+            Deleting a world is permanent. All associated tasks and plans will be deleted from the server.
           </p>
 
           <form action={deletePlan} className="flex justify-end">
             <input type="hidden" name="id" value={worldId} />
-            <button className="bg-red-500 hover:bg-red-600 text-white font-bold px-6 py-3 rounded-lg transition-colors flex items-center gap-2">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+            <button className="bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/20 font-bold px-6 py-3 rounded-lg transition-all flex items-center gap-2 group">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:rotate-12 transition-transform">
+                <path d="M3 6h18"></path>
+                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+              </svg>
               Delete World
             </button>
           </form>
