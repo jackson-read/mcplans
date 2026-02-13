@@ -7,25 +7,49 @@ import { redirect } from "next/navigation";
 import { eq, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
+// REPLACE YOUR OLD createPlan WITH THIS:
 export async function createPlan(formData: FormData) {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
 
   const name = formData.get("name") as string;
+  const inviteUsername = formData.get("inviteUsername") as string; // Get the username input
 
-  // 1. Insert the world with the ownerId
+  // 1. Create World
   const [newWorld] = await db.insert(worlds).values({
     name: name,
-    ownerId: userId, // 👈 This must exist for the settings page to work
+    ownerId: userId,
   }).returning();
 
-  // 2. Insert the membership
+  // 2. Add Owner (You)
   await db.insert(members).values({
     userId: userId,
     worldId: newWorld.id,
     role: "owner",
     status: "accepted"
   });
+
+  // 3. Handle Invite (The new part!)
+  if (inviteUsername) {
+    try {
+      const client = await clerkClient();
+      // Search Clerk for this username
+      const userList = await client.users.getUserList({ username: [inviteUsername] });
+      
+      if (userList.data.length > 0) {
+        const invitedUserId = userList.data[0].id;
+        
+        await db.insert(members).values({
+          userId: invitedUserId,
+          worldId: newWorld.id,
+          role: "member",
+          status: "pending" // They will see this in their inbox!
+        });
+      }
+    } catch (e) {
+      console.error("Failed to invite user:", e);
+    }
+  }
 
   revalidatePath("/dashboard");
   redirect("/dashboard");
@@ -57,22 +81,6 @@ export async function inviteUser(formData: FormData) {
 
   revalidatePath(`/dashboard/world/${worldId}`);
   redirect("/dashboard");
-}
-
-export async function acceptInvite(formData: FormData) {
-  const memberId = Number(formData.get("memberId"));
-  await db.update(members)
-    .set({ status: "accepted" })
-    .where(eq(members.id, memberId));
-  
-  revalidatePath("/dashboard");
-}
-
-export async function declineInvite(formData: FormData) {
-  const memberId = Number(formData.get("memberId"));
-  await db.delete(members).where(eq(members.id, memberId));
-  
-  revalidatePath("/dashboard");
 }
 
 export async function deletePlan(formData: FormData) {
@@ -191,4 +199,27 @@ export async function kickMember(formData: FormData) {
   await db.delete(members).where(eq(members.id, memberId));
 
   revalidatePath(`/dashboard/settings/${victim.worldId}`);
+}
+
+export async function acceptInvite(formData: FormData) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+  const memberId = parseInt(formData.get("memberId") as string);
+
+  await db.update(members)
+    .set({ status: "accepted" })
+    .where(and(eq(members.id, memberId), eq(members.userId, userId)));
+
+  revalidatePath("/dashboard");
+}
+
+export async function declineInvite(formData: FormData) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+  const memberId = parseInt(formData.get("memberId") as string);
+
+  await db.delete(members)
+    .where(and(eq(members.id, memberId), eq(members.userId, userId)));
+
+  revalidatePath("/dashboard");
 }
