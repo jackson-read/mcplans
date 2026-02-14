@@ -6,147 +6,194 @@ import { eq, desc } from "drizzle-orm";
 import Link from "next/link";
 import { createTask, toggleTask, deleteTask, updateTaskNote } from "@/app/actions";
 
-// 🎨 1. THEME CONFIGURATION (Colors for UI elements)
+// 🎨 THEME CONFIGURATION (Colors for UI elements)
 const getTheme = (biome: string) => {
   const defaults = { cardBg: "bg-black/40", border: "border-white/20", text: "text-white", accent: "bg-white/20" };
-  
   switch (biome) {
-    case 'nether': return { ...defaults, cardBg: "bg-[#2a0505]/80", border: "border-[#852323]", text: "text-[#ffaaaa]", accent: "bg-[#852323]" };
-    case 'end': return { ...defaults, cardBg: "bg-[#0d0917]/80", border: "border-[#554477]", text: "text-[#d8b4e2]", accent: "bg-[#2b204a]" };
-    case 'ocean': return { ...defaults, cardBg: "bg-[#051a24]/80", border: "border-[#4b8b8b]", text: "text-[#aaffff]", accent: "bg-[#2d5d5d]" };
-    case 'cherry': return { ...defaults, cardBg: "bg-[#4a2433]/80", border: "border-[#eb6eb0]", text: "text-[#ffeef5]", accent: "bg-[#a83e72]" };
-    case 'spruce': return { ...defaults, cardBg: "bg-[#261a12]/80", border: "border-[#5c4033]", text: "text-[#aacc88]", accent: "bg-[#3b2a1e]" };
-    case 'cave': return { ...defaults, cardBg: "bg-[#1a2611]/80", border: "border-[#7d8c4d]", text: "text-[#d6ff99]", accent: "bg-[#475c2e]" };
-    case 'plains': default: return { ...defaults, cardBg: "bg-[#1a2115]/80", border: "border-[#3e6826]", text: "text-[#ffffff]", accent: "bg-[#5b8731]" };
+    case 'nether': return { ...defaults, cardBg: "bg-[#2a0505]/90", border: "border-[#852323]", text: "text-[#ffaaaa]", accent: "bg-[#852323]" };
+    case 'end': return { ...defaults, cardBg: "bg-[#0d0917]/90", border: "border-[#554477]", text: "text-[#d8b4e2]", accent: "bg-[#2b204a]" };
+    case 'ocean': return { ...defaults, cardBg: "bg-[#051a24]/90", border: "border-[#4b8b8b]", text: "text-[#aaffff]", accent: "bg-[#2d5d5d]" };
+    case 'cherry': return { ...defaults, cardBg: "bg-[#4a2433]/90", border: "border-[#eb6eb0]", text: "text-[#ffeef5]", accent: "bg-[#a83e72]" };
+    case 'spruce': return { ...defaults, cardBg: "bg-[#261a12]/90", border: "border-[#5c4033]", text: "text-[#aacc88]", accent: "bg-[#3b2a1e]" };
+    case 'cave': return { ...defaults, cardBg: "bg-[#1a2611]/90", border: "border-[#7d8c4d]", text: "text-[#d6ff99]", accent: "bg-[#475c2e]" };
+    case 'plains': default: return { ...defaults, cardBg: "bg-[#1a2115]/90", border: "border-[#3e6826]", text: "text-[#ffffff]", accent: "bg-[#5b8731]" };
   }
 };
 
-// 🌄 2. BIOME VISUAL ENGINE (The Backgrounds)
+// 🌄 CSS PIXEL ART ENGINE
 const BiomeBackground = ({ biome }: { biome: string }) => {
   return (
-    <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden font-minecraft">
+    <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden font-minecraft select-none">
       
+      {/* ☁️ SHARED: CLOUDS (For Overworld Biomes) */}
+      {['plains', 'cherry', 'spruce'].includes(biome) && (
+        <>
+          <div className="absolute top-10 left-20 w-32 h-12 bg-white/20"></div>
+          <div className="absolute top-16 left-40 w-24 h-8 bg-white/20"></div>
+          <div className="absolute top-24 right-40 w-48 h-12 bg-white/20"></div>
+        </>
+      )}
+
       {/* --- PLAINS --- */}
       {biome === 'plains' && (
         <>
           <div className="absolute inset-0 bg-[#87ceeb]"></div> {/* Sky */}
-          <div className="absolute bottom-0 w-full h-32 bg-[#5b8731] border-t-8 border-[#4a6b28]"></div> {/* Grass */}
-          {/* Flowers */}
-          <div className="absolute bottom-24 left-10 text-4xl">🌹</div>
-          <div className="absolute bottom-28 left-40 text-4xl">🌻</div>
-          <div className="absolute bottom-20 left-1/2 text-4xl">🌷</div>
-          <div className="absolute bottom-26 right-20 text-4xl">🌼</div>
-          <div className="absolute top-10 right-10 text-6xl opacity-80">☀️</div>
+          {/* Grass Block Bottom */}
+          <div className="absolute bottom-0 w-full h-32 bg-[#5b8731] border-t-8 border-[#4a6b28] shadow-[inset_0_10px_20px_rgba(0,0,0,0.1)]">
+             {/* Dirt Texture */}
+             <div className="absolute inset-0 opacity-10" style={{backgroundImage: "radial-gradient(#000 2px, transparent 2px)", backgroundSize: "16px 16px"}}></div>
+          </div>
+          
+          {/* Pixel Art Flowers (Box Shadows) */}
+          <div className="absolute bottom-32 left-10 w-2 h-2 bg-transparent shadow-[4px_0_0_#f00,8px_0_0_#f00,6px_-4px_0_#ff0,6px_-8px_0_#f00]"></div> {/* Poppy */}
+          <div className="absolute bottom-32 right-20 w-2 h-2 bg-transparent shadow-[4px_0_0_#ff0,8px_0_0_#ff0,6px_-4px_0_#fff,6px_-8px_0_#ff0]"></div> {/* Dandelion */}
+          
+          {/* Tall Grass */}
+          <div className="absolute bottom-32 left-40 w-1 h-16 bg-[#3e6826] border-l-4 border-[#4a6b28]"></div>
+          <div className="absolute bottom-32 left-44 w-1 h-12 bg-[#3e6826] border-l-4 border-[#4a6b28]"></div>
+          <div className="absolute bottom-32 right-1/3 w-1 h-20 bg-[#3e6826] border-l-4 border-[#4a6b28]"></div>
         </>
       )}
 
       {/* --- CHERRY BLOSSOM --- */}
       {(biome === 'cherry' || biome === 'cherry_blossom') && (
         <>
-          <div className="absolute inset-0 bg-[#9fd3ff]"></div> {/* Blue Sky */}
-          <div className="absolute bottom-0 w-full h-32 bg-[#6ebb47] border-t-8 border-[#589c36]"></div> {/* Pink Grass Layer */}
-          
-          {/* Cherry Trees (CSS Art) */}
-          <div className="absolute bottom-32 left-10 w-4 h-32 bg-[#3b2618]">
-            <div className="absolute -top-16 -left-12 w-32 h-24 bg-[#ffb7d5] rounded-full opacity-90"></div>
+          <div className="absolute inset-0 bg-[#9fd3ff]"></div>
+          <div className="absolute bottom-0 w-full h-32 bg-[#6ebb47] border-t-8 border-[#589c36]">
+            {/* Pink Petals on Ground */}
+            <div className="absolute inset-0 opacity-80" style={{backgroundImage: "radial-gradient(#ffb7d5 2px, transparent 2px)", backgroundSize: "24px 24px"}}></div>
           </div>
-          <div className="absolute bottom-32 right-20 w-4 h-40 bg-[#3b2618]">
-            <div className="absolute -top-16 -left-12 w-32 h-24 bg-[#ffb7d5] rounded-full opacity-90"></div>
+          
+          {/* Blocky Tree */}
+          <div className="absolute bottom-32 left-10 w-16 h-48 bg-[#3b2618] border-r-8 border-[#2b1c11]">
+            <div className="absolute -top-32 -left-24 w-64 h-48 bg-[#ffb7d5] shadow-[inset_-10px_-10px_0_#eb9bb7]"></div>
           </div>
 
-          {/* Falling Petals Animation */}
-          <div className="absolute inset-0 animate-petal-fall opacity-60" style={{ backgroundImage: 'radial-gradient(#ffb7d5 2px, transparent 2px)', backgroundSize: '40px 40px' }}></div>
+          {/* Falling Petals (Square) */}
+          <div className="absolute inset-0 animate-petal-fall" style={{ backgroundImage: 'linear-gradient(to bottom, #ffb7d5 4px, transparent 4px)', backgroundSize: '60px 140px', backgroundPosition: '10px 0' }}></div>
         </>
       )}
 
       {/* --- OCEAN --- */}
       {biome === 'ocean' && (
         <>
-          <div className="absolute inset-0 bg-[#006994]"></div> {/* Deep Water */}
-          {/* Waves Pattern */}
-          <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "repeating-linear-gradient(45deg, #4489a6 0, #4489a6 1px, transparent 0, transparent 50%)", backgroundSize: "20px 20px" }}></div>
+          <div className="absolute inset-0 bg-[#006994]"></div>
+          {/* Water Texture */}
+          <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "repeating-linear-gradient(45deg, #fff 0, #fff 2px, transparent 0, transparent 40px)" }}></div>
           
-          {/* Ocean Monument (Corner) */}
-          <div className="absolute bottom-0 -right-12.5 w-64 h-64 bg-[#4b8b8b] rotate-45 border-4 border-[#2d5d5d] shadow-2xl"></div>
-          
-          {/* Fish */}
-          <div className="absolute top-1/2 left-20 text-4xl animate-pulse">🐟</div>
-          <div className="absolute bottom-40 right-1/2 text-3xl animate-bounce">🐠</div>
-          <div className="absolute top-40 right-20 text-5xl">🐡</div>
+          {/* Blocky Monument (Front View) */}
+          <div className="absolute bottom-0 right-10 w-80 h-64 bg-[#4b8b8b] flex flex-col items-center justify-end">
+             <div className="w-64 h-48 bg-[#4b8b8b] border-4 border-[#2d5d5d] flex items-center justify-center">
+                <div className="w-4 h-full bg-[#2d5d5d]"></div>
+                <div className="w-4 h-full bg-[#2d5d5d] ml-8"></div>
+                <div className="w-4 h-full bg-[#2d5d5d] mr-8"></div>
+                <div className="absolute w-8 h-8 bg-[#aaffff] shadow-[0_0_20px_#aaffff]"></div> {/* Sea Lantern */}
+             </div>
+             <div className="w-80 h-16 bg-[#2d5d5d]"></div>
+          </div>
+
+          {/* Pixel Fish */}
+          <div className="absolute top-1/2 left-20 w-8 h-4 bg-orange-500 shadow-[2px_0_0_#fff]"></div>
+          <div className="absolute top-1/3 left-1/2 w-6 h-3 bg-blue-300 shadow-[2px_0_0_#fff]"></div>
         </>
       )}
 
       {/* --- SPRUCE --- */}
       {biome === 'spruce' && (
         <>
-          <div className="absolute inset-0 bg-[#778ca3]"></div> {/* Greyish Sky */}
-          <div className="absolute bottom-0 w-full h-32 bg-[#4a3623] border-t-8 border-[#302316]"></div> {/* Podzol */}
+          <div className="absolute inset-0 bg-[#778ca3]"></div>
+          <div className="absolute bottom-0 w-full h-32 bg-[#4a3623] border-t-8 border-[#302316]">
+             {/* Podzol Texture */}
+             <div className="absolute inset-0 opacity-30" style={{backgroundImage: "radial-gradient(#261a12 4px, transparent 4px)", backgroundSize: "12px 12px"}}></div>
+          </div>
           
-          {/* Spruce Trees */}
-          <div className="absolute bottom-32 left-20 w-6 h-64 bg-[#2b1e16]">
-            <div className="absolute bottom-20 -left-10 border-l-40 border-r-40 border-b-60 border-l-transparent border-r-transparent border-b-[#1e2e14]"></div>
-            <div className="absolute bottom-40 -left-8 border-l-30 border-r-30 border-b-50 border-l-transparent border-r-transparent border-b-[#1e2e14]"></div>
+          {/* Spruce Tree */}
+          <div className="absolute bottom-32 left-10 w-12 h-64 bg-[#2b1e16]">
+             {/* Leaves (Triangles made of Borders) */}
+             <div className="absolute bottom-20 -left-14 border-l-40 border-r-40 border-b-60 border-l-transparent border-r-transparent border-b-[#1e2e14]"></div>
+             <div className="absolute bottom-40 -left-10 border-l-30 border-r-30 border-b-50 border-l-transparent border-r-transparent border-b-[#1e2e14]"></div>
+             <div className="absolute bottom-60 -left-6 border-l-20 border-r-20 border-b-40 border-l-transparent border-r-transparent border-b-[#1e2e14]"></div>
           </div>
 
-          {/* Wolf */}
-          <div className="absolute bottom-24 right-40 text-4xl">🐺</div>
-          <div className="absolute bottom-28 left-60 text-3xl opacity-90">🐺</div>
+          {/* Pixel Wolf */}
+          <div className="absolute bottom-32 right-40">
+             <div className="w-12 h-8 bg-[#ddd]"></div> {/* Body */}
+             <div className="absolute -top-6 left-0 w-8 h-8 bg-[#ddd]"></div> {/* Head */}
+             <div className="absolute top-8 left-0 w-2 h-4 bg-[#ddd]"></div> {/* Leg */}
+             <div className="absolute top-8 right-0 w-2 h-4 bg-[#ddd]"></div> {/* Leg */}
+             <div className="absolute top-0 -right-1 w-4 h-2 bg-[#ddd]"></div> {/* Tail */}
+          </div>
         </>
       )}
 
       {/* --- LUSH CAVE --- */}
       {biome === 'cave' && (
         <>
-          <div className="absolute inset-0 bg-[#1a1a1a]"></div> {/* Dark Stone */}
-          <div className="absolute bottom-0 w-full h-24 bg-[#394247] flex items-end">
-             {/* Water Pool */}
-             <div className="w-full h-10 bg-[#2d5e75] opacity-80 border-t-4 border-[#254d61]"></div>
+          <div className="absolute inset-0 bg-[#1a1a1a]"></div>
+          
+          {/* Floor: Mixed Clay/Stone/Moss */}
+          <div className="absolute bottom-0 w-full h-24 flex">
+             <div className="w-1/3 h-full bg-[#646464] border-t-4 border-[#555]"></div> {/* Stone */}
+             <div className="w-1/3 h-full bg-[#475c2e] border-t-4 border-[#5e7a3d]"></div> {/* Moss */}
+             <div className="w-1/3 h-full bg-[#394247] border-t-4 border-[#254d61] relative"> {/* Water */}
+                <div className="absolute top-4 left-10 w-12 h-4 bg-[#f28b82]"></div> {/* Axolotl Body */}
+                <div className="absolute top-2 left-18 w-2 h-2 bg-[#f28b82]"></div> {/* Fin */}
+             </div>
           </div>
           
-          {/* Glow Berries (Hanging) */}
-          <div className="absolute top-0 left-20 w-1 h-40 bg-[#4e6b2c]">
-            <div className="absolute bottom-0 -left-1 w-3 h-3 bg-[#ffd952] rounded-full shadow-[0_0_10px_#ffd952]"></div>
+          {/* Hanging Glow Berries (Pixel Vines) */}
+          <div className="absolute top-0 left-20 flex flex-col items-center">
+             <div className="w-2 h-32 bg-[#4e6b2c]"></div>
+             <div className="w-4 h-4 bg-[#ffd952] shadow-[0_0_15px_#ffd952] rounded-sm"></div>
           </div>
-          <div className="absolute top-0 right-40 w-1 h-56 bg-[#4e6b2c]">
-            <div className="absolute bottom-0 -left-1 w-3 h-3 bg-[#ffd952] rounded-full shadow-[0_0_10px_#ffd952]"></div>
+          <div className="absolute top-0 right-40 flex flex-col items-center">
+             <div className="w-2 h-48 bg-[#4e6b2c]"></div>
+             <div className="w-4 h-4 bg-[#ffd952] shadow-[0_0_15px_#ffd952] rounded-sm"></div>
           </div>
-
-          {/* Axolotls */}
-          <div className="absolute bottom-5 left-1/3 text-3xl">🦑</div> {/* Close enough to Axolotl emoji */}
         </>
       )}
 
       {/* --- NETHER --- */}
       {biome === 'nether' && (
         <>
-          <div className="absolute inset-0 bg-[#2a0505]"></div> {/* Dark Red Fog */}
-          <div className="absolute bottom-0 w-full h-32 bg-[#4d1616]"></div> {/* Netherrack */}
+          <div className="absolute inset-0 bg-[#2a0505]"></div>
+          <div className="absolute bottom-0 w-full h-32 bg-[#4d1616]">
+             {/* Netherrack Noise */}
+             <div className="absolute inset-0 opacity-20" style={{backgroundImage: "repeating-linear-gradient(45deg, #000 0, #000 2px, transparent 0, transparent 8px)"}}></div>
+          </div>
           
-          {/* Lava Fall */}
-          <div className="absolute top-0 left-1/2 w-20 h-full bg-[#cf5b13] opacity-80 border-x-4 border-[#ad3f0b]"></div>
+          {/* Lava Fall (Right Side) */}
+          <div className="absolute top-0 right-10 w-32 h-full bg-[#cf5b13] border-x-4 border-[#ad3f0b] opacity-90"></div>
           
-          {/* Fortress (Corner) */}
-          <div className="absolute bottom-0 left-0 w-40 h-80 bg-[#381111] border-r-8 border-[#260b0b]"></div>
+          {/* Fortress (Left) */}
+          <div className="absolute bottom-0 left-0">
+             <div className="w-24 h-96 bg-[#381111] border-r-8 border-[#260b0b]">
+                {/* Brick Texture */}
+                <div className="w-full h-full opacity-30" style={{backgroundImage: "linear-gradient(#000 2px, transparent 2px), linear-gradient(90deg, #000 2px, transparent 2px)", backgroundSize: "20px 10px"}}></div>
+             </div>
+             <div className="absolute bottom-64 left-24 w-64 h-16 bg-[#381111]"></div>
+          </div>
         </>
       )}
 
       {/* --- END --- */}
       {biome === 'end' && (
         <>
-          <div className="absolute inset-0 bg-[#0d0917]"></div> {/* Void Sky */}
-          <div className="absolute bottom-0 w-full h-32 bg-[#dbd6ac] border-t-8 border-[#c9c59d]"></div> {/* End Stone */}
+          <div className="absolute inset-0 bg-[#0d0917]"></div>
+          <div className="absolute bottom-0 w-full h-32 bg-[#dbd6ac] border-t-8 border-[#c9c59d]">
+             {/* End Stone Texture (Inverted Noise) */}
+             <div className="absolute inset-0 opacity-10" style={{backgroundImage: "radial-gradient(#000 2px, transparent 2px)", backgroundSize: "8px 8px", filter: "invert(1)"}}></div>
+          </div>
           
-          {/* Obsidian Pillar */}
-          <div className="absolute bottom-32 left-20 w-24 h-96 bg-[#160f29] border-x-4 border-black"></div>
-          
-          {/* Dragon */}
-          <div className="absolute top-20 right-40 text-8xl opacity-80 animate-pulse">🐉</div>
+          {/* Obsidian Pillars */}
+          <div className="absolute bottom-32 left-20 w-16 h-64 bg-[#160f29] border-x-4 border-black"></div>
+          <div className="absolute bottom-32 left-60 w-16 h-96 bg-[#160f29] border-x-4 border-black"></div>
+          <div className="absolute bottom-32 right-40 w-16 h-48 bg-[#160f29] border-x-4 border-black"></div>
         </>
       )}
     </div>
   );
 };
-
 
 export default async function WorldPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -155,7 +202,6 @@ export default async function WorldPage({ params }: { params: Promise<{ id: stri
 
   if (!userId) redirect("/");
 
-  // Fetch World
   const world = await db.query.worlds.findFirst({
     where: eq(worlds.id, worldId),
     with: { members: true }
@@ -170,7 +216,6 @@ export default async function WorldPage({ params }: { params: Promise<{ id: stri
     orderBy: [desc(tasks.createdAt)],
   });
 
-  // Fetch Users
   const client = await clerkClient();
   const memberIds = world.members.map(m => m.userId);
   let userMap = new Map<string, any>();
@@ -196,13 +241,13 @@ export default async function WorldPage({ params }: { params: Promise<{ id: stri
             <div className={`text-[10px] uppercase font-bold tracking-widest ${theme.text} opacity-80 flex items-center gap-2`}>
               <span>Biome: {world.biome || "Plains"}</span>
               {member.role === 'owner' && (
-                <Link href={`/dashboard/settings/${worldId}`} className="hover:underline decoration-white cursor-pointer">[Settings]</Link>
+                // ⚠️ NOTICE: We add ?from=world here!
+                <Link href={`/dashboard/settings/${worldId}?from=world`} className="hover:underline decoration-white cursor-pointer">[Settings]</Link>
               )}
             </div>
           </div>
         </div>
         
-        {/* Player Heads */}
         <div className="flex -space-x-3 hover:space-x-1 transition-all">
            {world.members.map(m => {
              const user = userMap.get(m.userId);
@@ -290,11 +335,11 @@ export default async function WorldPage({ params }: { params: Promise<{ id: stri
         </div>
       </main>
 
-      {/* 🎨 Falling Petals Animation Style */}
+      {/* Animation Styles */}
       <style>{`
         @keyframes petal-fall {
-          0% { background-position: 0 0; }
-          100% { background-position: 20px 200px; }
+          0% { background-position: 10px -100px; }
+          100% { background-position: 10px 800px; }
         }
         .animate-petal-fall { animation: petal-fall 10s linear infinite; }
       `}</style>

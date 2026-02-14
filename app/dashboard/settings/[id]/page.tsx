@@ -6,17 +6,25 @@ import { eq } from "drizzle-orm";
 import Link from "next/link";
 import { deletePlan, kickMember, renameWorld, updateBiome } from "@/app/actions";
 
-export default async function SettingsPage({ params }: { params: Promise<{ id: string }> }) {
+// ⚠️ Next.js 15: params and searchParams are Promises
+export default async function SettingsPage({ 
+  params, 
+  searchParams 
+}: { 
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
   
-  // 1. Next.js 15 Params Handling
   const { id } = await params;
+  const { from } = await searchParams; // Check if ?from=world exists
+  
   const worldId = parseInt(id);
   if (isNaN(worldId)) redirect("/dashboard");
 
   const { userId } = await auth();
   if (!userId) redirect("/");
 
-  // 2. Fetch World & Verify Ownership
+  // 1. Fetch World & Verify Ownership
   const world = await db.query.worlds.findFirst({
     where: eq(worlds.id, worldId),
     with: { members: true }
@@ -26,7 +34,7 @@ export default async function SettingsPage({ params }: { params: Promise<{ id: s
     redirect("/dashboard");
   }
 
-  // 3. Fetch Real Names from Clerk
+  // 2. Fetch Real Names from Clerk
   const client = await clerkClient();
   const memberIds = world.members.map(m => m.userId);
   let userMap = new Map<string, string>();
@@ -45,7 +53,7 @@ export default async function SettingsPage({ params }: { params: Promise<{ id: s
     console.error("Failed to fetch Clerk users:", e);
   }
 
-  // 4. Biome Configuration
+  // 3. Biome Configuration
   const biomes = [
     { 
       id: "plains", 
@@ -105,6 +113,10 @@ export default async function SettingsPage({ params }: { params: Promise<{ id: s
     },
   ];
 
+  // 📍 LOGIC: Determine Back Link Destination
+  const backLink = from === "world" ? `/dashboard/world/${worldId}` : "/dashboard";
+  const backLabel = from === "world" ? "Back to World" : "Back to Dashboard";
+
   return (
     <div className="min-h-screen bg-[#111] text-white font-sans p-6 md:p-12 relative overflow-hidden">
       
@@ -121,9 +133,9 @@ export default async function SettingsPage({ params }: { params: Promise<{ id: s
 
       <div className="max-w-4xl mx-auto space-y-12 relative z-10">
         
-        {/* 🔙 Back Link (Goes to WORLD now, not Dashboard) */}
-        <Link href={`/dashboard/world/${worldId}`} className="inline-flex items-center gap-2 text-zinc-500 hover:text-white mb-4 transition-colors font-minecraft group">
-          <span className="group-hover:-translate-x-1 transition-transform">&lt;</span> Back to World
+        {/* 🔙 Back Link (Dynamic) */}
+        <Link href={backLink} className="inline-flex items-center gap-2 text-zinc-500 hover:text-white mb-4 transition-colors font-minecraft group">
+          <span className="group-hover:-translate-x-1 transition-transform">&lt;</span> {backLabel}
         </Link>
 
         {/* 🏷️ Header */}
