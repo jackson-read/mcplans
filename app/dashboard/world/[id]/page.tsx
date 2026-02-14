@@ -5,8 +5,10 @@ import { worlds, tasks } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 import Link from "next/link";
 import { createTask, toggleTask, deleteTask, updateTaskNote } from "@/app/actions";
+import SpinWheel from "@/components/SpinWheel"; // Import the wheel!
 
-// 🎨 THEME CONFIGURATION (Colors for UI elements)
+
+// 🎨 THEME COLORS
 const getTheme = (biome: string) => {
   const defaults = { cardBg: "bg-black/40", border: "border-white/20", text: "text-white", accent: "bg-white/20" };
   switch (biome) {
@@ -20,38 +22,39 @@ const getTheme = (biome: string) => {
   }
 };
 
-// 🌄 CSS PIXEL ART ENGINE
+// 🌄 VISUAL ENGINE
 const BiomeBackground = ({ biome }: { biome: string }) => {
   return (
     <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden font-minecraft select-none">
       
-      {/* ☁️ SHARED: CLOUDS (For Overworld Biomes) */}
+      {/* ☁️ GLOBAL CLOUDS (Overworld) */}
       {['plains', 'cherry', 'spruce'].includes(biome) && (
         <>
-          <div className="absolute top-10 left-20 w-32 h-12 bg-white/20"></div>
-          <div className="absolute top-16 left-40 w-24 h-8 bg-white/20"></div>
-          <div className="absolute top-24 right-40 w-48 h-12 bg-white/20"></div>
+          <div className="absolute top-10 left-10 w-48 h-16 bg-white/30"></div>
+          <div className="absolute top-24 left-1/3 w-32 h-12 bg-white/20"></div>
+          <div className="absolute top-12 right-20 w-64 h-20 bg-white/30"></div>
         </>
       )}
 
       {/* --- PLAINS --- */}
       {biome === 'plains' && (
         <>
-          <div className="absolute inset-0 bg-[#87ceeb]"></div> {/* Sky */}
-          {/* Grass Block Bottom */}
-          <div className="absolute bottom-0 w-full h-32 bg-[#5b8731] border-t-8 border-[#4a6b28] shadow-[inset_0_10px_20px_rgba(0,0,0,0.1)]">
-             {/* Dirt Texture */}
-             <div className="absolute inset-0 opacity-10" style={{backgroundImage: "radial-gradient(#000 2px, transparent 2px)", backgroundSize: "16px 16px"}}></div>
+          <div className="absolute inset-0 bg-[#87ceeb]"></div>
+          {/* Ground Layers */}
+          <div className="absolute bottom-0 w-full h-24 bg-[#5b3e2b]"></div> {/* Dirt */}
+          <div className="absolute bottom-24 w-full h-8 bg-[#5b8731] border-b-4 border-[#4a6b28]"></div> {/* Grass Block Top */}
+          
+          {/* Blocky Flowers (CSS Box Shadows) */}
+          <div className="absolute bottom-32 left-20 w-4 h-4 bg-red-500 shadow-[4px_0_0_#b00,-4px_0_0_#b00,0_-4px_0_#b00,0_4px_0_#b00,0_0_0_4px_rgba(0,0,0,0.2)]">
+            <div className="absolute top-4 left-1 w-2 h-6 bg-[#3e6826]"></div>
           </div>
-          
-          {/* Pixel Art Flowers (Box Shadows) */}
-          <div className="absolute bottom-32 left-10 w-2 h-2 bg-transparent shadow-[4px_0_0_#f00,8px_0_0_#f00,6px_-4px_0_#ff0,6px_-8px_0_#f00]"></div> {/* Poppy */}
-          <div className="absolute bottom-32 right-20 w-2 h-2 bg-transparent shadow-[4px_0_0_#ff0,8px_0_0_#ff0,6px_-4px_0_#fff,6px_-8px_0_#ff0]"></div> {/* Dandelion */}
-          
-          {/* Tall Grass */}
-          <div className="absolute bottom-32 left-40 w-1 h-16 bg-[#3e6826] border-l-4 border-[#4a6b28]"></div>
-          <div className="absolute bottom-32 left-44 w-1 h-12 bg-[#3e6826] border-l-4 border-[#4a6b28]"></div>
-          <div className="absolute bottom-32 right-1/3 w-1 h-20 bg-[#3e6826] border-l-4 border-[#4a6b28]"></div>
+          <div className="absolute bottom-32 right-1/4 w-4 h-4 bg-yellow-400 shadow-[4px_0_0_#d4af37,-4px_0_0_#d4af37,0_-4px_0_#d4af37,0_4px_0_#d4af37]">
+            <div className="absolute top-4 left-1 w-2 h-6 bg-[#3e6826]"></div>
+          </div>
+
+          {/* Grass Texture */}
+          <div className="absolute bottom-32 left-40 w-2 h-12 bg-[#3e6826] border-l-4 border-[#2f4f1e]"></div>
+          <div className="absolute bottom-32 left-44 w-2 h-8 bg-[#3e6826] border-l-4 border-[#2f4f1e]"></div>
         </>
       )}
 
@@ -59,18 +62,20 @@ const BiomeBackground = ({ biome }: { biome: string }) => {
       {(biome === 'cherry' || biome === 'cherry_blossom') && (
         <>
           <div className="absolute inset-0 bg-[#9fd3ff]"></div>
-          <div className="absolute bottom-0 w-full h-32 bg-[#6ebb47] border-t-8 border-[#589c36]">
-            {/* Pink Petals on Ground */}
-            <div className="absolute inset-0 opacity-80" style={{backgroundImage: "radial-gradient(#ffb7d5 2px, transparent 2px)", backgroundSize: "24px 24px"}}></div>
-          </div>
+          {/* Ground Layers */}
+          <div className="absolute bottom-0 w-full h-24 bg-[#5b3e2b]"></div> {/* Dirt */}
+          <div className="absolute bottom-24 w-full h-8 bg-[#6ebb47] border-b-4 border-[#589c36]"></div> {/* Grass Top */}
           
-          {/* Blocky Tree */}
-          <div className="absolute bottom-32 left-10 w-16 h-48 bg-[#3b2618] border-r-8 border-[#2b1c11]">
-            <div className="absolute -top-32 -left-24 w-64 h-48 bg-[#ffb7d5] shadow-[inset_-10px_-10px_0_#eb9bb7]"></div>
-          </div>
-
-          {/* Falling Petals (Square) */}
-          <div className="absolute inset-0 animate-petal-fall" style={{ backgroundImage: 'linear-gradient(to bottom, #ffb7d5 4px, transparent 4px)', backgroundSize: '60px 140px', backgroundPosition: '10px 0' }}></div>
+          {/* Trees (Improved) */}
+          {[-10, 80].map((pos, i) => (
+            <div key={i} className={`absolute bottom-32 left-[${pos}%] w-24 h-64`}>
+              {/* Log */}
+              <div className="absolute bottom-0 left-8 w-8 h-48 bg-[#3b2618] border-x-4 border-[#2b1c11]"></div>
+              {/* Leaves (Blocky) */}
+              <div className="absolute bottom-32 -left-8 w-40 h-24 bg-[#ffb7d5] opacity-90 shadow-[inset_0_-8px_0_#eb9bb7]"></div>
+              <div className="absolute bottom-48 left-0 w-24 h-16 bg-[#ffb7d5] opacity-90"></div>
+            </div>
+          ))}
         </>
       )}
 
@@ -78,23 +83,24 @@ const BiomeBackground = ({ biome }: { biome: string }) => {
       {biome === 'ocean' && (
         <>
           <div className="absolute inset-0 bg-[#006994]"></div>
-          {/* Water Texture */}
-          <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "repeating-linear-gradient(45deg, #fff 0, #fff 2px, transparent 0, transparent 40px)" }}></div>
           
-          {/* Blocky Monument (Front View) */}
-          <div className="absolute bottom-0 right-10 w-80 h-64 bg-[#4b8b8b] flex flex-col items-center justify-end">
-             <div className="w-64 h-48 bg-[#4b8b8b] border-4 border-[#2d5d5d] flex items-center justify-center">
-                <div className="w-4 h-full bg-[#2d5d5d]"></div>
-                <div className="w-4 h-full bg-[#2d5d5d] ml-8"></div>
-                <div className="w-4 h-full bg-[#2d5d5d] mr-8"></div>
-                <div className="absolute w-8 h-8 bg-[#aaffff] shadow-[0_0_20px_#aaffff]"></div> {/* Sea Lantern */}
-             </div>
-             <div className="w-80 h-16 bg-[#2d5d5d]"></div>
+          {/* Ocean Monument (Better Perspective) */}
+          <div className="absolute bottom-0 right-20 w-80 h-64 bg-[#4b8b8b] border-4 border-[#2d5d5d]">
+             {/* Prismarine Details */}
+             <div className="absolute top-10 left-10 w-60 h-4 bg-[#2d5d5d]"></div>
+             <div className="absolute top-20 left-10 w-60 h-4 bg-[#2d5d5d]"></div>
+             <div className="absolute top-32 left-10 w-60 h-4 bg-[#2d5d5d]"></div>
+             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-[#aaffff] shadow-[0_0_30px_#aaffff]"></div>
           </div>
 
           {/* Pixel Fish */}
-          <div className="absolute top-1/2 left-20 w-8 h-4 bg-orange-500 shadow-[2px_0_0_#fff]"></div>
-          <div className="absolute top-1/3 left-1/2 w-6 h-3 bg-blue-300 shadow-[2px_0_0_#fff]"></div>
+          <div className="absolute top-40 left-20 w-12 h-6 bg-orange-400">
+             <div className="absolute top-1 right-0 w-2 h-2 bg-black"></div> {/* Eye */}
+             <div className="absolute top-2 -left-2 w-2 h-2 bg-orange-400"></div> {/* Tail */}
+          </div>
+          <div className="absolute top-60 left-1/3 w-8 h-4 bg-yellow-400">
+             <div className="absolute top-1 right-0 w-1 h-1 bg-black"></div>
+          </div>
         </>
       )}
 
@@ -102,54 +108,48 @@ const BiomeBackground = ({ biome }: { biome: string }) => {
       {biome === 'spruce' && (
         <>
           <div className="absolute inset-0 bg-[#778ca3]"></div>
+          {/* Podzol Ground */}
           <div className="absolute bottom-0 w-full h-32 bg-[#4a3623] border-t-8 border-[#302316]">
-             {/* Podzol Texture */}
-             <div className="absolute inset-0 opacity-30" style={{backgroundImage: "radial-gradient(#261a12 4px, transparent 4px)", backgroundSize: "12px 12px"}}></div>
+             <div className="absolute inset-0 opacity-20" style={{backgroundImage: "radial-gradient(#261a12 2px, transparent 2px)", backgroundSize: "8px 8px"}}></div>
           </div>
           
-          {/* Spruce Tree */}
-          <div className="absolute bottom-32 left-10 w-12 h-64 bg-[#2b1e16]">
-             {/* Leaves (Triangles made of Borders) */}
-             <div className="absolute bottom-20 -left-14 border-l-40 border-r-40 border-b-60 border-l-transparent border-r-transparent border-b-[#1e2e14]"></div>
-             <div className="absolute bottom-40 -left-10 border-l-30 border-r-30 border-b-50 border-l-transparent border-r-transparent border-b-[#1e2e14]"></div>
-             <div className="absolute bottom-60 -left-6 border-l-20 border-r-20 border-b-40 border-l-transparent border-r-transparent border-b-[#1e2e14]"></div>
-          </div>
-
-          {/* Pixel Wolf */}
-          <div className="absolute bottom-32 right-40">
-             <div className="w-12 h-8 bg-[#ddd]"></div> {/* Body */}
-             <div className="absolute -top-6 left-0 w-8 h-8 bg-[#ddd]"></div> {/* Head */}
-             <div className="absolute top-8 left-0 w-2 h-4 bg-[#ddd]"></div> {/* Leg */}
-             <div className="absolute top-8 right-0 w-2 h-4 bg-[#ddd]"></div> {/* Leg */}
-             <div className="absolute top-0 -right-1 w-4 h-2 bg-[#ddd]"></div> {/* Tail */}
-          </div>
+          {/* Trees (Aligned) */}
+          {[10, 40, 75].map((pos, i) => (
+            <div key={i} className="absolute bottom-32" style={{left: `${pos}%`}}>
+               {/* Log */}
+               <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-64 bg-[#2b1e16] border-x-2 border-[#1a110d]"></div>
+               {/* Leaves */}
+               <div className="absolute bottom-20 left-1/2 -translate-x-1/2 w-48 h-16 bg-[#1e2e14]"></div>
+               <div className="absolute bottom-36 left-1/2 -translate-x-1/2 w-32 h-16 bg-[#1e2e14]"></div>
+               <div className="absolute bottom-52 left-1/2 -translate-x-1/2 w-16 h-16 bg-[#1e2e14]"></div>
+            </div>
+          ))}
         </>
       )}
 
       {/* --- LUSH CAVE --- */}
       {biome === 'cave' && (
         <>
-          <div className="absolute inset-0 bg-[#1a1a1a]"></div>
+          {/* Cave Texture Background */}
+          <div className="absolute inset-0 bg-[#1a1a1a]" style={{backgroundImage: "radial-gradient(circle at 50% 50%, #111 20%, transparent 21%)", backgroundSize: "40px 40px"}}></div>
           
-          {/* Floor: Mixed Clay/Stone/Moss */}
-          <div className="absolute bottom-0 w-full h-24 flex">
-             <div className="w-1/3 h-full bg-[#646464] border-t-4 border-[#555]"></div> {/* Stone */}
-             <div className="w-1/3 h-full bg-[#475c2e] border-t-4 border-[#5e7a3d]"></div> {/* Moss */}
-             <div className="w-1/3 h-full bg-[#394247] border-t-4 border-[#254d61] relative"> {/* Water */}
-                <div className="absolute top-4 left-10 w-12 h-4 bg-[#f28b82]"></div> {/* Axolotl Body */}
-                <div className="absolute top-2 left-18 w-2 h-2 bg-[#f28b82]"></div> {/* Fin */}
-             </div>
+          {/* Mixed Ground (Random Patches) */}
+          <div className="absolute bottom-0 w-full h-32 bg-[#646464] overflow-hidden">
+             {/* Clay Patch */}
+             <div className="absolute bottom-0 left-20 w-64 h-32 bg-[#9fa4b2] rounded-full blur-xl"></div>
+             {/* Moss Patch */}
+             <div className="absolute bottom-0 right-40 w-96 h-24 bg-[#475c2e] rounded-t-xl border-t-8 border-[#5e7a3d]"></div>
+             {/* Water Patch */}
+             <div className="absolute bottom-0 left-1/2 w-40 h-10 bg-[#2d5e75]"></div>
           </div>
-          
-          {/* Hanging Glow Berries (Pixel Vines) */}
-          <div className="absolute top-0 left-20 flex flex-col items-center">
-             <div className="w-2 h-32 bg-[#4e6b2c]"></div>
-             <div className="w-4 h-4 bg-[#ffd952] shadow-[0_0_15px_#ffd952] rounded-sm"></div>
-          </div>
-          <div className="absolute top-0 right-40 flex flex-col items-center">
-             <div className="w-2 h-48 bg-[#4e6b2c]"></div>
-             <div className="w-4 h-4 bg-[#ffd952] shadow-[0_0_15px_#ffd952] rounded-sm"></div>
-          </div>
+
+          {/* Hanging Glow Berries (More of them) */}
+          {[10, 25, 60, 85].map((pos, i) => (
+            <div key={i} className="absolute top-0 flex flex-col items-center" style={{left: `${pos}%`}}>
+               <div className="w-4 h-40 bg-[#4e6b2c]" style={{height: `${100 + i * 40}px`}}></div>
+               <div className="w-6 h-6 bg-[#ffd952] shadow-[0_0_20px_#ffd952] rounded-sm"></div>
+            </div>
+          ))}
         </>
       )}
 
@@ -157,21 +157,20 @@ const BiomeBackground = ({ biome }: { biome: string }) => {
       {biome === 'nether' && (
         <>
           <div className="absolute inset-0 bg-[#2a0505]"></div>
+          {/* Netherrack (Noise Filter) */}
           <div className="absolute bottom-0 w-full h-32 bg-[#4d1616]">
-             {/* Netherrack Noise */}
-             <div className="absolute inset-0 opacity-20" style={{backgroundImage: "repeating-linear-gradient(45deg, #000 0, #000 2px, transparent 0, transparent 8px)"}}></div>
+             <div className="absolute inset-0 opacity-10" style={{backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`}}></div>
           </div>
           
-          {/* Lava Fall (Right Side) */}
-          <div className="absolute top-0 right-10 w-32 h-full bg-[#cf5b13] border-x-4 border-[#ad3f0b] opacity-90"></div>
-          
-          {/* Fortress (Left) */}
-          <div className="absolute bottom-0 left-0">
-             <div className="w-24 h-96 bg-[#381111] border-r-8 border-[#260b0b]">
-                {/* Brick Texture */}
-                <div className="w-full h-full opacity-30" style={{backgroundImage: "linear-gradient(#000 2px, transparent 2px), linear-gradient(90deg, #000 2px, transparent 2px)", backgroundSize: "20px 10px"}}></div>
-             </div>
-             <div className="absolute bottom-64 left-24 w-64 h-16 bg-[#381111]"></div>
+          {/* Lava (Right Side, Textured) */}
+          <div className="absolute top-0 right-0 w-48 h-full bg-[#cf5b13] border-l-8 border-[#ad3f0b]">
+             <div className="absolute inset-0 opacity-30" style={{backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.5' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`}}></div>
+          </div>
+
+          {/* Fortress (Uniform Bricks) */}
+          <div className="absolute bottom-0 left-10 w-64 h-80 bg-[#381111]">
+             {/* Brick Pattern */}
+             <div className="absolute inset-0 opacity-40" style={{backgroundImage: "linear-gradient(#1a0505 2px, transparent 2px), linear-gradient(90deg, #1a0505 2px, transparent 2px)", backgroundSize: "32px 16px"}}></div>
           </div>
         </>
       )}
@@ -181,11 +180,9 @@ const BiomeBackground = ({ biome }: { biome: string }) => {
         <>
           <div className="absolute inset-0 bg-[#0d0917]"></div>
           <div className="absolute bottom-0 w-full h-32 bg-[#dbd6ac] border-t-8 border-[#c9c59d]">
-             {/* End Stone Texture (Inverted Noise) */}
              <div className="absolute inset-0 opacity-10" style={{backgroundImage: "radial-gradient(#000 2px, transparent 2px)", backgroundSize: "8px 8px", filter: "invert(1)"}}></div>
           </div>
-          
-          {/* Obsidian Pillars */}
+          {/* Pillars */}
           <div className="absolute bottom-32 left-20 w-16 h-64 bg-[#160f29] border-x-4 border-black"></div>
           <div className="absolute bottom-32 left-60 w-16 h-96 bg-[#160f29] border-x-4 border-black"></div>
           <div className="absolute bottom-32 right-40 w-16 h-48 bg-[#160f29] border-x-4 border-black"></div>
@@ -229,10 +226,9 @@ export default async function WorldPage({ params }: { params: Promise<{ id: stri
   return (
     <div className="min-h-screen font-sans relative overflow-x-hidden selection:bg-white/20">
       
-      {/* 🖼️ BACKGROUND LAYER */}
       <BiomeBackground biome={world.biome || 'plains'} />
 
-      {/* 🔝 HEADER */}
+      {/* HEADER */}
       <header className={`relative z-10 p-6 flex flex-col md:flex-row justify-between items-center gap-4 ${theme.cardBg} backdrop-blur-sm border-b-4 ${theme.border}`}>
         <div className="flex items-center gap-4">
           <Link href="/dashboard" className="text-white hover:-translate-x-1 transition-transform">&larr;</Link>
@@ -241,13 +237,13 @@ export default async function WorldPage({ params }: { params: Promise<{ id: stri
             <div className={`text-[10px] uppercase font-bold tracking-widest ${theme.text} opacity-80 flex items-center gap-2`}>
               <span>Biome: {world.biome || "Plains"}</span>
               {member.role === 'owner' && (
-                // ⚠️ NOTICE: We add ?from=world here!
                 <Link href={`/dashboard/settings/${worldId}?from=world`} className="hover:underline decoration-white cursor-pointer">[Settings]</Link>
               )}
             </div>
           </div>
         </div>
         
+        {/* Heads */}
         <div className="flex -space-x-3 hover:space-x-1 transition-all">
            {world.members.map(m => {
              const user = userMap.get(m.userId);
@@ -266,22 +262,17 @@ export default async function WorldPage({ params }: { params: Promise<{ id: stri
         </div>
       </header>
 
-      {/* 📝 MAIN CONTENT */}
+      {/* MAIN CONTENT */}
       <main className="relative z-10 max-w-5xl mx-auto p-6 grid grid-cols-1 md:grid-cols-3 gap-8">
         
         {/* LEFT COL: Wheel */}
         <div className="md:col-span-1 space-y-6">
-           <div className={`${theme.cardBg} border-4 ${theme.border} p-6 shadow-xl backdrop-blur-sm`}>
-              <h2 className={`font-minecraft text-xl mb-4 border-b-2 ${theme.border} pb-2 ${theme.text}`}>Spin Wheel</h2>
-              <div className={`aspect-square bg-black/20 rounded-full border-4 border-dashed ${theme.border} flex items-center justify-center`}>
-                 <p className={`text-xs opacity-50 font-minecraft ${theme.text}`}>Coming Soon...</p>
-              </div>
-           </div>
+           {/* 🎡 THE SPIN WHEEL COMPONENT */}
+           <SpinWheel tasks={worldTasks} theme={theme} />
         </div>
 
         {/* RIGHT COL: Tasks */}
         <div className="md:col-span-2 space-y-6">
-           {/* Add Task */}
            <div className={`${theme.cardBg} border-4 ${theme.border} p-4 shadow-xl backdrop-blur-sm`}>
               <form action={createTask} className="flex gap-2">
                  <input type="hidden" name="worldId" value={worldId} />
@@ -290,7 +281,6 @@ export default async function WorldPage({ params }: { params: Promise<{ id: stri
               </form>
            </div>
 
-           {/* Task List */}
            <div className="space-y-4">
               {worldTasks.map(task => {
                 const isMyTask = task.creatorId === userId;
@@ -334,15 +324,6 @@ export default async function WorldPage({ params }: { params: Promise<{ id: stri
            </div>
         </div>
       </main>
-
-      {/* Animation Styles */}
-      <style>{`
-        @keyframes petal-fall {
-          0% { background-position: 10px -100px; }
-          100% { background-position: 10px 800px; }
-        }
-        .animate-petal-fall { animation: petal-fall 10s linear infinite; }
-      `}</style>
     </div>
   );
 }
