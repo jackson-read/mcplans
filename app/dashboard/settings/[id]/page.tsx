@@ -74,7 +74,7 @@ export default async function SettingsPage({
       name: "Ocean", 
       bg: "bg-[#4b8b8b]", 
       border: "border-[#2d5d5d]", 
-      desc: "Deep blue & guardians." 
+      desc: "Deep blue & fish." 
     },
     { 
       id: "spruce", 
