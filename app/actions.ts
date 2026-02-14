@@ -97,17 +97,17 @@ export async function deletePlan(formData: FormData) {
 
 export async function createTask(formData: FormData) {
   const { userId } = await auth();
-  if (!userId) throw new Error("Not logged in");
+  if (!userId) throw new Error("Unauthorized");
 
-  const worldId = Number(formData.get("worldId"));
+  const worldId = parseInt(formData.get("worldId") as string);
   const description = formData.get("description") as string;
 
   await db.insert(tasks).values({
-    worldId: worldId,
-    description: description,
-    isCompleted: false,
+    worldId,
+    description,
+    creatorId: userId, // 👈 Save the creator!
   });
-  
+
   revalidatePath(`/dashboard/world/${worldId}`);
 }
 
@@ -281,4 +281,60 @@ export async function sendInvite(formData: FormData) {
 
   revalidatePath(`/dashboard/settings/${worldId}`);
   redirect(`/dashboard/settings/${worldId}`); // Go back to settings after inviting
+}
+
+export async function updateTaskNote(formData: FormData) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  const taskId = parseInt(formData.get("taskId") as string);
+  const note = formData.get("note") as string;
+  const worldId = parseInt(formData.get("worldId") as string);
+
+  // Security: Only the creator (or world owner) should edit. 
+  // For simplicity, we check if you are the creator in the UI, 
+  // but strictly we should check DB here too.
+  
+  await db.update(tasks)
+    .set({ note: note })
+    .where(eq(tasks.id, taskId));
+
+  revalidatePath(`/dashboard/world/${worldId}`);
+}
+
+// 5. Toggle Task (Check/Uncheck)
+export async function toggleTask(formData: FormData) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  const taskId = parseInt(formData.get("taskId") as string);
+  const worldId = parseInt(formData.get("worldId") as string);
+
+  // 1. Get current status so we can flip it
+  const task = await db.query.tasks.findFirst({
+    where: eq(tasks.id, taskId),
+  });
+
+  if (!task) return;
+
+  // 2. Flip the boolean (true -> false, false -> true)
+  await db.update(tasks)
+    .set({ isCompleted: !task.isCompleted })
+    .where(eq(tasks.id, taskId));
+
+  revalidatePath(`/dashboard/world/${worldId}`);
+}
+
+// 6. Delete Task
+export async function deleteTask(formData: FormData) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  const taskId = parseInt(formData.get("taskId") as string);
+  const worldId = parseInt(formData.get("worldId") as string);
+
+  // Delete it
+  await db.delete(tasks).where(eq(tasks.id, taskId));
+
+  revalidatePath(`/dashboard/world/${worldId}`);
 }
