@@ -243,3 +243,42 @@ export async function updateBiome(formData: FormData) {
 
   revalidatePath(`/dashboard/settings/${worldId}`);
 }
+
+// app/actions.ts
+// Add this to the bottom of your file
+
+export async function sendInvite(formData: FormData) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  const worldId = parseInt(formData.get("worldId") as string);
+  const username = formData.get("username") as string;
+
+  // 1. Verify you are the owner
+  const world = await db.query.worlds.findFirst({
+    where: eq(worlds.id, worldId),
+  });
+  if (!world || world.ownerId !== userId) throw new Error("Not authorized");
+
+  // 2. Find the user in Clerk
+  const client = await clerkClient();
+  const userList = await client.users.getUserList({ username: [username] });
+
+  if (userList.data.length === 0) {
+    // In a real app, you'd want to return an error message to the UI
+    return; 
+  }
+
+  const invitedUserId = userList.data[0].id;
+
+  // 3. Add them as PENDING
+  await db.insert(members).values({
+    userId: invitedUserId,
+    worldId: worldId,
+    role: "member",
+    status: "pending"
+  });
+
+  revalidatePath(`/dashboard/settings/${worldId}`);
+  redirect(`/dashboard/settings/${worldId}`); // Go back to settings after inviting
+}
