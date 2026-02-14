@@ -5,6 +5,7 @@ export const worlds = pgTable("worlds", {
   id: serial("id").primaryKey(),
   ownerId: varchar("owner_id", { length: 255 }).notNull(), // The Creator
   name: text("name").notNull(), 
+  biome: text("biome").default("plains"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

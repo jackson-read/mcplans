@@ -223,3 +223,23 @@ export async function declineInvite(formData: FormData) {
 
   revalidatePath("/dashboard");
 }
+
+export async function updateBiome(formData: FormData) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  const worldId = parseInt(formData.get("worldId") as string);
+  const biome = formData.get("biome") as string;
+
+  // Verify Owner
+  const world = await db.query.worlds.findFirst({
+    where: eq(worlds.id, worldId),
+  });
+  if (!world || world.ownerId !== userId) throw new Error("Unauthorized");
+
+  await db.update(worlds)
+    .set({ biome: biome })
+    .where(eq(worlds.id, worldId));
+
+  revalidatePath(`/dashboard/settings/${worldId}`);
+}
