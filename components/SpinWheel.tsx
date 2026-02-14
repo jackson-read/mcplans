@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 
-// 🛠️ FIX: Allow isCompleted to be boolean OR null
 type Task = {
   id: number;
   description: string;
@@ -13,7 +12,6 @@ export default function SpinWheel({ tasks, theme }: { tasks: Task[], theme: any 
   const [spinning, setSpinning] = useState(false);
   const [result, setResult] = useState<string | null>(null);
 
-  // Filter out completed tasks (treating null as false/incomplete)
   const activeTasks = tasks.filter(t => t.isCompleted !== true);
 
   const handleSpin = () => {
@@ -21,17 +19,14 @@ export default function SpinWheel({ tasks, theme }: { tasks: Task[], theme: any 
     
     setSpinning(true);
     setResult(null);
-
-    // Audio effect could go here
     
     let duration = 0;
     const interval = setInterval(() => {
-      // Show random task while spinning
       const randomTemp = activeTasks[Math.floor(Math.random() * activeTasks.length)];
       setResult(randomTemp.description);
       
       duration += 100;
-      if (duration > 2000) { // Spin for 2 seconds
+      if (duration > 2000) {
         clearInterval(interval);
         const finalTask = activeTasks[Math.floor(Math.random() * activeTasks.length)];
         setResult(finalTask.description);
@@ -41,17 +36,16 @@ export default function SpinWheel({ tasks, theme }: { tasks: Task[], theme: any 
   };
 
   return (
-    <div className={`${theme.cardBg} border-4 ${theme.border} p-6 shadow-xl backdrop-blur-sm h-full flex flex-col`}>
+    // Removed 'h-full', added 'h-fit' to stop it from stretching/centering when tasks tasks grow
+    <div className={`${theme.cardBg} border-4 ${theme.border} p-6 shadow-xl backdrop-blur-sm h-fit flex flex-col`}>
       <h2 className={`font-minecraft text-xl mb-4 border-b-2 ${theme.border} pb-2 ${theme.text}`}>
-        Task Roulette
+        Roll Random Task
       </h2>
       
-      <div className="flex-1 flex flex-col items-center justify-center gap-6">
+      <div className="flex flex-col items-center justify-start gap-6">
         
-        {/* The Display Box */}
+        {/* Display Box */}
         <div className={`w-full aspect-video ${theme.accent} border-4 ${theme.border} flex items-center justify-center p-4 text-center relative overflow-hidden group`}>
-          
-          {/* Scanline effect */}
           <div className="absolute inset-0 bg-linear-to-b from-transparent to-black/10 pointer-events-none" style={{backgroundSize: '100% 4px'}}></div>
           
           {result ? (
@@ -60,12 +54,12 @@ export default function SpinWheel({ tasks, theme }: { tasks: Task[], theme: any 
             </p>
           ) : (
             <p className="font-minecraft text-sm opacity-50">
-              {activeTasks.length > 0 ? "Ready to spin..." : "No tasks available!"}
+              {activeTasks.length > 0 ? "Ready to roll..." : "No tasks available!"}
             </p>
           )}
         </div>
 
-        {/* The Button */}
+        {/* Button */}
         <button 
           onClick={handleSpin}
           disabled={spinning || activeTasks.length === 0}
@@ -77,7 +71,7 @@ export default function SpinWheel({ tasks, theme }: { tasks: Task[], theme: any 
             hover:brightness-110
           `}
         >
-          {spinning ? "SPINNING..." : "SPIN WHEEL"}
+          {spinning ? "ROLLING..." : "ROLL TASK"}
         </button>
         
         <p className="text-[10px] opacity-40 font-minecraft text-center">

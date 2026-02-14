@@ -60,7 +60,6 @@ export default async function SettingsPage({
       name: "Plains", 
       bg: "bg-[#71c352]", 
       border: "border-[#4e8c36]", 
-      text: "text-[#d1f7c4]", 
       desc: "Classic grass & flowers." 
     },
     { 
@@ -68,15 +67,13 @@ export default async function SettingsPage({
       name: "Cherry Blossom", 
       bg: "bg-[#ffb5d4]", 
       border: "border-[#d17da1]", 
-      text: "text-[#fff0f6]", 
       desc: "Pink petals & blue sky." 
     },
     { 
       id: "ocean", 
-      name: "Ocean Monument", 
+      name: "Ocean", 
       bg: "bg-[#4b8b8b]", 
       border: "border-[#2d5d5d]", 
-      text: "text-[#aaffff]", 
       desc: "Deep blue & guardians." 
     },
     { 
@@ -84,7 +81,6 @@ export default async function SettingsPage({
       name: "Spruce Forest", 
       bg: "bg-[#584633]", 
       border: "border-[#3b2e22]", 
-      text: "text-[#aacc88]", 
       desc: "Podzol & tall pines." 
     },
     { 
@@ -92,15 +88,13 @@ export default async function SettingsPage({
       name: "Lush Cave", 
       bg: "bg-[#475c2e]", 
       border: "border-[#7d8c4d]", 
-      text: "text-[#d6ff99]", 
-      desc: "Clay, moss & axolotls." 
+      desc: "Clay, moss & glow berries." 
     },
     { 
       id: "nether", 
       name: "The Nether", 
       bg: "bg-[#4d1616]", 
       border: "border-[#852323]", 
-      text: "text-[#ffaaaa]", 
       desc: "Lava & fortresses." 
     },
     { 
@@ -108,7 +102,6 @@ export default async function SettingsPage({
       name: "The End", 
       bg: "bg-[#ebe6c5]", 
       border: "border-[#2b204a]", 
-      text: "text-[#d8b4e2]", 
       desc: "End stone & void." 
     },
   ];
@@ -192,8 +185,13 @@ export default async function SettingsPage({
                       <span className="text-white text-xs">✅</span>
                     </div>
 
-                    <span className={`font-minecraft text-center text-sm drop-shadow-md relative z-10 ${b.text}`}>{b.name}</span>
-                    <span className="text-[10px] text-white/70 font-minecraft text-center mt-1 relative z-10 leading-tight">{b.desc}</span>
+                    {/* Text - White with Heavy Black Shadow */}
+                    <span className="font-minecraft text-center text-sm drop-shadow-[0_2px_2px_rgba(0,0,0,1)] relative z-10 text-white font-bold">
+                      {b.name}
+                    </span>
+                    <span className="text-[10px] text-white font-bold font-minecraft text-center mt-1 relative z-10 leading-tight drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
+                      {b.desc}
+                    </span>
                   </div>
                 </label>
               ))}
