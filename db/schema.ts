@@ -30,7 +30,6 @@ export const membersRelations = relations(members, ({ one }) => ({
   }),
 }));
 
-// ... other tables ...
 
 // Make sure 'export' is here!
 export const tasks = pgTable("tasks", {
@@ -39,7 +38,7 @@ export const tasks = pgTable("tasks", {
   description: text("description").notNull(),
   isCompleted: boolean("is_completed").default(false),
   createdAt: timestamp("created_at").defaultNow(),
-  // 🆕 NEW FIELDS
   creatorId: varchar("creator_id", { length: 255 }), // Who made this?
   note: text("note"), // The custom comment/note
+  position: integer("position").default(0),
 });

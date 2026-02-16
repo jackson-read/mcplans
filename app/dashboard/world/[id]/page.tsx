@@ -6,6 +6,7 @@ import { eq, desc } from "drizzle-orm";
 import Link from "next/link";
 import { createTask, toggleTask, deleteTask, updateTaskNote, leaveWorld } from "@/app/actions";
 import SpinWheel from "@/components/SpinWheel";
+import TaskArea from "@/components/TaskArea";
 
 const getTheme = (biome: string) => {
   const defaults = { cardBg: "bg-black/40", border: "border-white/20", text: "text-white", accent: "bg-white/20" };
@@ -204,7 +205,7 @@ export default async function WorldPage({ params }: { params: Promise<{ id: stri
 
   const worldTasks = await db.query.tasks.findMany({
     where: eq(tasks.worldId, worldId),
-    orderBy: [desc(tasks.createdAt)],
+    orderBy: [desc(tasks.position), desc(tasks.createdAt)],
   });
 
   const client = await clerkClient();
@@ -281,57 +282,12 @@ export default async function WorldPage({ params }: { params: Promise<{ id: stri
               </form>
            </div>
 
-           {/* 🟦 GRID LAYOUT (grid-cols-3) */}
-           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {worldTasks.map(task => {
-                const isMyTask = task.creatorId === userId;
-                return (
-                  <div key={task.id} className={`group ${theme.cardBg} border-2 ${theme.border} p-3 shadow-md backdrop-blur-sm hover:shadow-lg transition-all flex flex-col gap-2 h-auto`}>
-                    
-                    {/* Top Row */}
-                    <div className="flex items-start justify-between gap-2">
-                       {/* Checkbox */}
-                       <form action={toggleTask}>
-                          <input type="hidden" name="taskId" value={task.id} />
-                          <input type="hidden" name="worldId" value={worldId} />
-                          <button className={`w-5 h-5 border-2 ${theme.border} bg-black/20 flex items-center justify-center hover:bg-white/10 text-white transition-colors rounded-sm`}>
-                             {task.isCompleted && <span className="text-sm leading-none">✓</span>}
-                          </button>
-                       </form>
-                       
-                       {/* Delete Button (Top Right) */}
-                       <form action={deleteTask}>
-                          <input type="hidden" name="taskId" value={task.id} />
-                          <input type="hidden" name="worldId" value={worldId} />
-                          <button className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-200 transition-opacity text-xs font-bold">X</button>
-                       </form>
-                    </div>
-
-                    {/* Content */}
-                    <div>
-                      <p className={`text-sm leading-tight ${theme.text} ${task.isCompleted ? "line-through opacity-40" : ""}`}>{task.description}</p>
-                      <p className={`text-[9px] opacity-40 mt-1 font-mono uppercase ${theme.text}`}>By {userMap.get(task.creatorId || "")?.name || 'Unknown'}</p>
-                    </div>
-
-                    {/* Notes */}
-                    <div className={`mt-auto pt-2 border-t ${theme.border} rounded p-1`}>
-                      {isMyTask ? (
-                        <form action={updateTaskNote}>
-                          <input type="hidden" name="taskId" value={task.id} />
-                          <input type="hidden" name="worldId" value={worldId} />
-                          <textarea name="note" placeholder="Note..." defaultValue={task.note || ""} className={`w-full bg-transparent text-xs ${theme.text} opacity-80 focus:opacity-100 focus:outline-none resize-none h-6 focus:h-12 transition-all placeholder:text-white/20`} />
-                          <button className={`text-[8px] uppercase ${theme.text} opacity-0 group-hover:opacity-50 hover:opacity-100 w-full text-right`}>Save</button>
-                        </form>
-                      ) : (
-                        task.note ? <p className={`text-xs opacity-70 italic ${theme.text}`}>"{task.note}"</p> : <p className={`text-[9px] opacity-20 italic ${theme.text}`}>No notes.</p>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-           </div>
-           
-           {worldTasks.length === 0 && <div className={`text-center opacity-40 py-10 font-minecraft ${theme.text}`}>No tasks yet. Punch a tree!</div>}
+           <TaskArea 
+              tasks={worldTasks} 
+              theme={theme} 
+              userId={userId} 
+              userMap={userMap} 
+           />
         </div>
       </main>
     </div>

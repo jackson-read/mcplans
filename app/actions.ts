@@ -385,3 +385,19 @@ export async function leaveWorld(formData: FormData) {
   revalidatePath("/dashboard");
   redirect("/dashboard");
 }
+
+export async function reorderTasks(items: { id: number; position: number }[]) {
+  const { userId } = await auth();
+  if (!userId) return;
+
+  // Update all items in a transaction (or batch)
+  await db.transaction(async (tx) => {
+    for (const item of items) {
+      await tx.update(tasks)
+        .set({ position: item.position })
+        .where(eq(tasks.id, item.id));
+    }
+  });
+  
+  revalidatePath("/dashboard");
+}
