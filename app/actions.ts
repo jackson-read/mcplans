@@ -381,22 +381,22 @@ export async function leaveWorld(formData: FormData) {
 
 export async function reorderTasks(items: { id: number; position: number }[], worldId: number) {
   const { userId } = await auth();
-  if (!userId) return;
-
-  console.log(`[REORDER] World: ${worldId}, Items to update: ${items.length}`);
+  if (!userId) return { error: "Unauthorized" };
 
   try {
-    await Promise.all(
-      items.map((item) =>
-        db.update(tasks)
-          .set({ position: item.position })
-          .where(and(eq(tasks.id, item.id), eq(tasks.creatorId, userId))) // Extra security: ensure user owns the task
-      )
-    );
+    // Sequential updates are sometimes more reliable on Neon than Promise.all
+    for (const item of items) {
+      await db.update(tasks)
+        .set({ position: item.position })
+        .where(and(eq(tasks.id, item.id), eq(tasks.creatorId, userId)));
+    }
 
-    console.log("[REORDER] Success. Revalidating path...");
+    await new Promise((resolve) => setTimeout(resolve, 300));
     revalidatePath(`/dashboard/world/${worldId}`);
+    
+    return { success: true }; // 👈 Ensure this return is here
   } catch (error) {
-    console.error("[REORDER] Database Error:", error);
+    console.error(error);
+    return { error: "Failed to save" };
   }
 }

@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useTransition, useRef } from "react";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { toggleTask, deleteTask, updateTaskNote, reorderTasks } from "@/app/actions";
-import { useTransition } from "react";
 
 interface Task {
   id: number;
@@ -111,12 +110,16 @@ return (
 export default function TaskArea({ tasks, theme, userId, isOwner, userMap }: any) {
   const [items, setItems] = useState<Task[]>(tasks);
   const [isPending, startTransition] = useTransition();
+  const isManuallyUpdating = useRef(false);
 
   // Sync with DB updates
-  useEffect(() => { 
-    // ONLY update if we aren't currently dragging/saving
-    if (!isPending) {
-      setItems(tasks); 
+useEffect(() => {
+    // Only overwrite our local items if:
+    // 1. We aren't in the middle of a save (isPending)
+    // 2. We haven't just finished a drag (isManuallyUpdating)
+    // 3. OR the number of tasks actually changed (Add/Delete)
+    if ((!isPending && !isManuallyUpdating.current) || tasks.length !== items.length) {
+      setItems(tasks);
     }
   }, [tasks, isPending]);
 
@@ -132,10 +135,10 @@ const handleDragEnd = (event: any) => {
       const newIndex = items.findIndex((i: any) => i.id === over.id);
       const newOrder = arrayMove(items, oldIndex, newIndex) as Task[];
 
-      // 1. Update UI immediately
+      // 1. Activate the Lock
+      isManuallyUpdating.current = true;
       setItems(newOrder);
 
-      // 2. Wrap the server call in startTransition
       const worldId = newOrder[0]?.worldId;
       if (worldId) {
         const updates = newOrder.map((t: Task, index: number) => ({ 
@@ -145,6 +148,11 @@ const handleDragEnd = (event: any) => {
 
         startTransition(async () => {
           await reorderTasks(updates, worldId);
+          
+          // 2. Release the lock after a short delay to let the cache settle
+          setTimeout(() => {
+            isManuallyUpdating.current = false;
+          }, 2000); 
         });
       }
     }
