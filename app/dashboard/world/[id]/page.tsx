@@ -205,7 +205,7 @@ export default async function WorldPage({ params }: { params: Promise<{ id: stri
 
   const worldTasks = await db.query.tasks.findMany({
     where: eq(tasks.worldId, worldId),
-    orderBy: [asc(tasks.position), desc(tasks.createdAt)],
+    orderBy: [asc(tasks.position), asc(tasks.createdAt)],
   });
 
   const client = await clerkClient();

@@ -105,7 +105,8 @@ export async function createTask(formData: FormData) {
   await db.insert(tasks).values({
     worldId,
     description,
-    creatorId: userId, // 👈 Save the creator!
+    creatorId: userId,
+    position: -1, // 👈 Add this so new tasks don't conflict with dragged ones
   });
 
   revalidatePath(`/dashboard/world/${worldId}`);
@@ -381,22 +382,22 @@ export async function leaveWorld(formData: FormData) {
 
 export async function reorderTasks(items: { id: number; position: number }[], worldId: number) {
   const { userId } = await auth();
-  if (!userId) return { error: "Unauthorized" };
+  if (!userId) return;
 
   try {
-    // Sequential updates are sometimes more reliable on Neon than Promise.all
+    // 1. Update each task one by one to ensure the DB processes every single one
     for (const item of items) {
       await db.update(tasks)
         .set({ position: item.position })
-        .where(and(eq(tasks.id, item.id), eq(tasks.creatorId, userId)));
+        .where(eq(tasks.id, item.id));
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 300));
+    // 2. Give the DB a moment to settle
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    // 3. Revalidate
     revalidatePath(`/dashboard/world/${worldId}`);
-    
-    return { success: true }; // 👈 Ensure this return is here
   } catch (error) {
-    console.error(error);
-    return { error: "Failed to save" };
+    console.error("REORDER ERROR:", error);
   }
 }
