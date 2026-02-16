@@ -333,8 +333,55 @@ export async function deleteTask(formData: FormData) {
   const taskId = parseInt(formData.get("taskId") as string);
   const worldId = parseInt(formData.get("worldId") as string);
 
-  // Delete it
-  await db.delete(tasks).where(eq(tasks.id, taskId));
+  // Fetch Task & World to verify permissions
+  const task = await db.query.tasks.findFirst({ where: eq(tasks.id, taskId) });
+  const world = await db.query.worlds.findFirst({ where: eq(worlds.id, worldId) });
 
+  if (!task || !world) return;
+
+  // 👮 Permission Check:
+  // You must be the Task Creator OR the World Owner
+  if (task.creatorId !== userId && world.ownerId !== userId) {
+    throw new Error("You cannot delete a task you didn't create.");
+  }
+
+  await db.delete(tasks).where(eq(tasks.id, taskId));
   revalidatePath(`/dashboard/world/${worldId}`);
+}
+
+// 2. NEW ACTION: UPDATE CARD STYLE
+export async function updateCardStyle(formData: FormData) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  const memberId = parseInt(formData.get("memberId") as string);
+  const style = formData.get("style") as string;
+
+  await db.update(members)
+    .set({ cardStyle: style })
+    .where(and(eq(members.id, memberId), eq(members.userId, userId)));
+
+  revalidatePath("/dashboard");
+}
+
+export async function leaveWorld(formData: FormData) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  const worldId = parseInt(formData.get("worldId") as string);
+
+  // 1. Verify NOT owner (Owners must delete, not leave)
+  const world = await db.query.worlds.findFirst({
+    where: eq(worlds.id, worldId),
+  });
+  
+  if (!world) throw new Error("World not found");
+  if (world.ownerId === userId) throw new Error("Owners cannot leave. Delete the world instead.");
+
+  // 2. Remove the member entry
+  await db.delete(members)
+    .where(and(eq(members.userId, userId), eq(members.worldId, worldId)));
+
+  revalidatePath("/dashboard");
+  redirect("/dashboard");
 }

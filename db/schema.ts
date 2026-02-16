@@ -15,6 +15,7 @@ export const members = pgTable("members", {
   userId: varchar("user_id", { length: 255 }).notNull(), // The User (Owner or Guest)
   role: text("role").default("member"), // 'owner' or 'member'
   status: text("status").default("pending"),
+  cardStyle: text("card_style").default("default"),
 });
 
 // Relations allow us to "Join" these tables later

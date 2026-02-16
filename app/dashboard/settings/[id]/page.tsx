@@ -262,7 +262,7 @@ export default async function SettingsPage({
             <span>🧨</span> Danger Zone
           </h2>
           <p className="text-[#aa5555] font-minecraft text-xs mb-6">
-            Deleting a world is permanent. All chunks will be lost.
+            Deleting a world is permanent. But you can always make another one. 
           </p>
 
           <form action={deletePlan} className="flex justify-end">

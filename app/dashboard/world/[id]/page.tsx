@@ -4,7 +4,7 @@ import { db } from "@/db";
 import { worlds, tasks } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 import Link from "next/link";
-import { createTask, toggleTask, deleteTask, updateTaskNote } from "@/app/actions";
+import { createTask, toggleTask, deleteTask, updateTaskNote, leaveWorld } from "@/app/actions";
 import SpinWheel from "@/components/SpinWheel";
 
 const getTheme = (biome: string) => {
@@ -34,7 +34,7 @@ const BiomeBackground = ({ biome }: { biome: string }) => {
         </>
       )}
 
-      {/* --- PLAINS --- */}
+{/* --- PLAINS --- */}
       {biome === 'plains' && (
         <>
           <div className="absolute inset-0 bg-[#87ceeb]"></div>
@@ -44,20 +44,19 @@ const BiomeBackground = ({ biome }: { biome: string }) => {
           </div>
           
           {/* FLOWERS */}
-          <div className="absolute bottom-32 left-20 w-4 h-4 bg-red-500 shadow-[4px_0_0_#b00,-4px_0_0_#b00,0_-4px_0_#b00,0_4px_0_#b00,0_0_0_4px_rgba(0,0,0,0.2)]">
-            <div className="absolute top-4 left-1 w-2 h-6 bg-[#3e6826]"></div>
-          </div>
-          <div className="absolute bottom-32 left-1/4 w-4 h-4 bg-yellow-400 shadow-[4px_0_0_#d4af37,-4px_0_0_#d4af37,0_-4px_0_#d4af37,0_4px_0_#d4af37]">
-            <div className="absolute top-4 left-1 w-2 h-6 bg-[#3e6826]"></div>
-          </div>
-          <div className="absolute bottom-32 right-1/3 w-4 h-4 bg-blue-400 shadow-[4px_0_0_#00a,-4px_0_0_#00a,0_-4px_0_#00a,0_4px_0_#00a]">
-            <div className="absolute top-4 left-1 w-2 h-6 bg-[#3e6826]"></div>
-          </div>
-          <div className="absolute bottom-32 right-10 w-4 h-4 bg-white shadow-[4px_0_0_#ccc,-4px_0_0_#ccc,0_-4px_0_#ccc,0_4px_0_#ccc]">
-            <div className="absolute top-4 left-1 w-2 h-6 bg-[#3e6826]"></div>
-          </div>
-          <div className="absolute bottom-32 left-40 w-2 h-12 bg-[#3e6826] border-l-4 border-[#2f4f1e]"></div>
-          <div className="absolute bottom-32 right-1/2 w-2 h-16 bg-[#3e6826] border-l-4 border-[#2f4f1e]"></div>
+          <div className="absolute bottom-32 left-20 w-4 h-4 bg-red-500 shadow-[4px_0_0_#b00,-4px_0_0_#b00,0_-4px_0_#b00,0_4px_0_#b00,0_0_0_4px_rgba(0,0,0,0.2)]"><div className="absolute top-4 left-1 w-2 h-6 bg-[#3e6826]"></div></div>
+          <div className="absolute bottom-32 left-1/4 w-4 h-4 bg-yellow-400 shadow-[4px_0_0_#d4af37,-4px_0_0_#d4af37,0_-4px_0_#d4af37,0_4px_0_#d4af37]"><div className="absolute top-4 left-1 w-2 h-6 bg-[#3e6826]"></div></div>
+          <div className="absolute bottom-32 right-1/3 w-4 h-4 bg-blue-400 shadow-[4px_0_0_#00a,-4px_0_0_#00a,0_-4px_0_#00a,0_4px_0_#00a]"><div className="absolute top-4 left-1 w-2 h-6 bg-[#3e6826]"></div></div>
+          <div className="absolute bottom-32 right-10 w-4 h-4 bg-white shadow-[4px_0_0_#ccc,-4px_0_0_#ccc,0_-4px_0_#ccc,0_4px_0_#ccc]"><div className="absolute top-4 left-1 w-2 h-6 bg-[#3e6826]"></div></div>
+          
+          {/* 🌿 MORE GRASS TEXTURE (Added these lines) */}
+          <div className="absolute bottom-32 left-10 w-2 h-10 bg-[#3e6826] border-l-4 border-[#2f4f1e]"></div>
+          <div className="absolute bottom-32 left-40 w-2 h-14 bg-[#3e6826] border-l-4 border-[#2f4f1e]"></div>
+          <div className="absolute bottom-32 left-1/2 w-2 h-12 bg-[#3e6826] border-l-4 border-[#2f4f1e]"></div>
+          <div className="absolute bottom-32 right-1/4 w-2 h-16 bg-[#3e6826] border-l-4 border-[#2f4f1e]"></div>
+          <div className="absolute bottom-32 right-20 w-2 h-8 bg-[#3e6826] border-l-4 border-[#2f4f1e]"></div>
+          <div className="absolute bottom-32 left-[15%] w-2 h-12 bg-[#3e6826] border-l-4 border-[#2f4f1e]"></div>
+          <div className="absolute bottom-32 right-[40%] w-2 h-10 bg-[#3e6826] border-l-4 border-[#2f4f1e]"></div>
         </>
       )}
 
@@ -69,13 +68,9 @@ const BiomeBackground = ({ biome }: { biome: string }) => {
           <div className="absolute bottom-24 w-full h-8 bg-[#6ebb47] border-b-4 border-[#589c36]">
             <div className="absolute inset-0 opacity-80" style={{backgroundImage: "radial-gradient(#ffb7d5 2px, transparent 2px)", backgroundSize: "24px 24px"}}></div>
           </div>
-          
-          {/* TREES (Using explicit style={{left}} to fix Tailwind bug) */}
           {[5, 35, 75].map((pos, i) => (
             <div key={i} className="absolute bottom-32 w-24 h-64" style={{ left: `${pos}%` }}>
-              {/* Log */}
               <div className="absolute bottom-0 left-8 w-8 h-48 bg-[#3b2618] border-x-4 border-[#2b1c11]"></div>
-              {/* Textured Leaves */}
               <div className="absolute bottom-32 -left-8 w-40 h-24 bg-[#ffb7d5] opacity-90 shadow-[inset_0_4px_0_#fff,inset_0_-8px_0_#eb9bb7]"></div>
               <div className="absolute bottom-48 left-0 w-24 h-16 bg-[#ffb7d5] opacity-90 shadow-[inset_0_4px_0_#fff]"></div>
             </div>
@@ -87,8 +82,6 @@ const BiomeBackground = ({ biome }: { biome: string }) => {
       {biome === 'ocean' && (
         <>
           <div className="absolute inset-0 bg-[#006994]"></div>
-          
-          {/* FISH SCHOOL */}
           {[
             { t: 40, l: 20, c: "bg-orange-400" }, { t: 60, l: 50, c: "bg-yellow-400" },
             { t: 20, l: 80, c: "bg-blue-300" }, { t: 80, l: 10, c: "bg-red-400" },
@@ -111,7 +104,6 @@ const BiomeBackground = ({ biome }: { biome: string }) => {
           <div className="absolute bottom-0 w-full h-32 bg-[#4a3623] border-t-8 border-[#302316]">
              <div className="absolute inset-0 opacity-20" style={{backgroundImage: "radial-gradient(#261a12 2px, transparent 2px)", backgroundSize: "8px 8px"}}></div>
           </div>
-          {/* Trees with explicit left positioning */}
           {[10, 40, 75].map((pos, i) => (
             <div key={i} className="absolute bottom-32" style={{left: `${pos}%`}}>
                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-64 bg-[#2b1e16] border-x-2 border-[#1a110d]"></div>
@@ -123,16 +115,33 @@ const BiomeBackground = ({ biome }: { biome: string }) => {
         </>
       )}
 
-      {/* --- LUSH CAVE --- */}
+{/* --- LUSH CAVE (UPDATED) --- */}
       {biome === 'cave' && (
         <>
           <div className="absolute inset-0 bg-[#222]"></div>
           
-          {/* Floor: Just Clay & Water */}
+          {/* 🌿 NEW FLOOR: Mixed Clay/Water Pattern */}
           <div className="absolute bottom-0 w-full h-24 flex">
-             <div className="w-1/2 h-full bg-[#9fa4b2] border-t-4 border-[#858996]"></div>
-             <div className="w-1/2 h-full bg-[#2d5e75] border-t-4 border-[#254d61]"></div>
+             {/* Pattern: Clay, Clay, Water, Clay, Water, Water... */}
+             <div className="w-1/6 h-full bg-[#9fa4b2] border-t-4 border-[#858996]"></div> {/* Clay */}
+             <div className="w-1/6 h-full bg-[#9fa4b2] border-t-4 border-[#858996]"></div> {/* Clay */}
+             <div className="w-1/6 h-full bg-[#2d5e75] border-t-4 border-[#254d61]"></div> {/* Water */}
+             <div className="w-1/6 h-full bg-[#9fa4b2] border-t-4 border-[#858996]"></div> {/* Clay */}
+             <div className="w-1/6 h-full bg-[#2d5e75] border-t-4 border-[#254d61]"></div> {/* Water */}
+             <div className="w-1/6 h-full bg-[#2d5e75] border-t-4 border-[#254d61]"></div> {/* Water */}
           </div>
+
+          {/* 🌺 AZALEA BUSHES (On Floor) */}
+          {[10, 35, 65, 80].map((pos, i) => (
+             <div key={i} className="absolute bottom-24 w-12 h-12 bg-[#4e6b2c] rounded-md" style={{ left: `${pos}%` }}>
+                {/* Leaves */}
+                <div className="absolute -top-4 -left-2 w-16 h-8 bg-[#4e6b2c] rounded-md"></div>
+                {/* Pink Flowers */}
+                <div className="absolute top-0 left-2 w-2 h-2 bg-[#d965a3]"></div>
+                <div className="absolute top-2 right-2 w-2 h-2 bg-[#d965a3]"></div>
+                <div className="absolute -top-2 left-6 w-2 h-2 bg-[#d965a3]"></div>
+             </div>
+          ))}
 
           {/* Hanging Glow Berries */}
           {[5, 15, 30, 50, 70, 85, 95].map((pos, i) => (
@@ -149,21 +158,12 @@ const BiomeBackground = ({ biome }: { biome: string }) => {
       {biome === 'nether' && (
         <>
           <div className="absolute inset-0 bg-[#2a0505]"></div>
-          
-          {/* Ground */}
           <div className="absolute bottom-0 w-full h-32 bg-[#381111]">
-             {/* Simple Noise (Not diagonal lines) */}
              <div className="absolute inset-0 opacity-10" style={{backgroundImage: "radial-gradient(#000 2px, transparent 2px)", backgroundSize: "4px 4px"}}></div>
           </div>
-          
-          {/* Lava (Simple Orange, No Glow) */}
           <div className="absolute top-0 left-20 w-40 h-full bg-[#ff7b00] border-x-4 border-[#cc5500] opacity-90"></div>
-
-          {/* Broken Fortress Pillar (Darker Red) */}
           <div className="absolute bottom-0 right-20">
-             {/* Main Pillar */}
              <div className="w-32 h-96 bg-[#1f0505]"></div> 
-             {/* Broken Extension */}
              <div className="absolute top-20 -left-32 w-32 h-16 bg-[#1f0505]"></div>
              <div className="absolute top-20 -left-40 w-8 h-12 bg-[#1f0505]"></div>
           </div>
@@ -230,8 +230,15 @@ export default async function WorldPage({ params }: { params: Promise<{ id: stri
             <h1 className={`text-3xl font-minecraft drop-shadow-md ${theme.text}`}>{world.name}</h1>
             <div className={`text-[10px] uppercase font-bold tracking-widest ${theme.text} opacity-80 flex items-center gap-2`}>
               <span>Biome: {world.biome === 'ocean' ? 'Ocean' : (world.biome || "Plains")}</span>
-              {member.role === 'owner' && (
+              
+              {/* 🛑 LEAVE / SETTINGS LOGIC */}
+              {member.role === 'owner' ? (
                 <Link href={`/dashboard/settings/${worldId}?from=world`} className="hover:underline decoration-white cursor-pointer">[Settings]</Link>
+              ) : (
+                <form action={leaveWorld}>
+                  <input type="hidden" name="worldId" value={worldId} />
+                  <button className="hover:text-red-400 hover:underline decoration-red-400 cursor-pointer bg-transparent border-none p-0 ml-2">[Leave World]</button>
+                </form>
               )}
             </div>
           </div>
@@ -274,47 +281,57 @@ export default async function WorldPage({ params }: { params: Promise<{ id: stri
               </form>
            </div>
 
-           <div className="space-y-4">
+           {/* 🟦 GRID LAYOUT (grid-cols-3) */}
+           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {worldTasks.map(task => {
                 const isMyTask = task.creatorId === userId;
                 return (
-                  <div key={task.id} className={`group ${theme.cardBg} border-l-4 ${theme.border} p-4 shadow-md backdrop-blur-sm hover:shadow-lg transition-all`}>
-                    <div className="flex items-start gap-3">
+                  <div key={task.id} className={`group ${theme.cardBg} border-2 ${theme.border} p-3 shadow-md backdrop-blur-sm hover:shadow-lg transition-all flex flex-col gap-2 h-auto`}>
+                    
+                    {/* Top Row */}
+                    <div className="flex items-start justify-between gap-2">
+                       {/* Checkbox */}
                        <form action={toggleTask}>
                           <input type="hidden" name="taskId" value={task.id} />
                           <input type="hidden" name="worldId" value={worldId} />
-                          <button className={`w-6 h-6 border-2 ${theme.border} bg-black/20 flex items-center justify-center hover:bg-white/10 text-white transition-colors rounded-sm`}>
-                             {task.isCompleted && <span className="text-lg leading-none">✓</span>}
+                          <button className={`w-5 h-5 border-2 ${theme.border} bg-black/20 flex items-center justify-center hover:bg-white/10 text-white transition-colors rounded-sm`}>
+                             {task.isCompleted && <span className="text-sm leading-none">✓</span>}
                           </button>
                        </form>
-                       <div className="flex-1">
-                          <p className={`text-lg leading-tight ${theme.text} ${task.isCompleted ? "line-through opacity-40" : ""}`}>{task.description}</p>
-                          <p className={`text-[10px] opacity-40 mt-1 font-mono uppercase ${theme.text}`}>Added by {userMap.get(task.creatorId || "")?.name || 'Unknown'}</p>
-                       </div>
+                       
+                       {/* Delete Button (Top Right) */}
                        <form action={deleteTask}>
                           <input type="hidden" name="taskId" value={task.id} />
                           <input type="hidden" name="worldId" value={worldId} />
-                          <button className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-200 transition-opacity px-2">x</button>
+                          <button className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-200 transition-opacity text-xs font-bold">X</button>
                        </form>
                     </div>
+
+                    {/* Content */}
+                    <div>
+                      <p className={`text-sm leading-tight ${theme.text} ${task.isCompleted ? "line-through opacity-40" : ""}`}>{task.description}</p>
+                      <p className={`text-[9px] opacity-40 mt-1 font-mono uppercase ${theme.text}`}>By {userMap.get(task.creatorId || "")?.name || 'Unknown'}</p>
+                    </div>
+
                     {/* Notes */}
-                    <div className={`mt-3 pt-3 border-t ${theme.border} rounded p-2`}>
+                    <div className={`mt-auto pt-2 border-t ${theme.border} rounded p-1`}>
                       {isMyTask ? (
                         <form action={updateTaskNote}>
                           <input type="hidden" name="taskId" value={task.id} />
                           <input type="hidden" name="worldId" value={worldId} />
-                          <textarea name="note" placeholder="Add notes..." defaultValue={task.note || ""} className={`w-full bg-transparent text-sm ${theme.text} opacity-80 focus:opacity-100 focus:outline-none resize-y min-h-10 placeholder:text-white/20`} />
-                          <button className={`text-[10px] uppercase ${theme.text} opacity-50 hover:opacity-100 mt-1`}>Save Note</button>
+                          <textarea name="note" placeholder="Note..." defaultValue={task.note || ""} className={`w-full bg-transparent text-xs ${theme.text} opacity-80 focus:opacity-100 focus:outline-none resize-none h-6 focus:h-12 transition-all placeholder:text-white/20`} />
+                          <button className={`text-[8px] uppercase ${theme.text} opacity-0 group-hover:opacity-50 hover:opacity-100 w-full text-right`}>Save</button>
                         </form>
                       ) : (
-                        task.note ? <p className={`text-sm opacity-70 italic ${theme.text}`}>"{task.note}"</p> : <p className={`text-[10px] opacity-30 italic ${theme.text}`}>No notes.</p>
+                        task.note ? <p className={`text-xs opacity-70 italic ${theme.text}`}>"{task.note}"</p> : <p className={`text-[9px] opacity-20 italic ${theme.text}`}>No notes.</p>
                       )}
                     </div>
                   </div>
                 );
               })}
-              {worldTasks.length === 0 && <div className={`text-center opacity-40 py-10 font-minecraft ${theme.text}`}>No tasks yet. Punch a tree!</div>}
            </div>
+           
+           {worldTasks.length === 0 && <div className={`text-center opacity-40 py-10 font-minecraft ${theme.text}`}>No tasks yet. Punch a tree!</div>}
         </div>
       </main>
     </div>
