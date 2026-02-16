@@ -42,8 +42,29 @@ export default async function DashboardPage() {
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white relative flex flex-col font-sans selection:bg-[#ff8c00] selection:text-black overflow-x-hidden pb-32">
       
-      {/* 🏔️ Background */}
-      <div className="fixed inset-0 z-0 pointer-events-none" style={{ backgroundColor: "#0f0f0f", backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E"), radial-gradient(circle at 20% 30%, rgba(0, 255, 255, 0.05) 0%, transparent 5px), radial-gradient(circle at 80% 10%, rgba(0, 255, 255, 0.05) 0%, transparent 5px)` }}></div>
+      {/* 🏔️ CAVE BACKGROUND (Simulated Ores & Stone Noise) */}
+      <div className="fixed inset-0 z-0 pointer-events-none" 
+           style={{ 
+             backgroundColor: "#0f0f0f",
+             backgroundImage: `
+                /* Noise Filter for Stone Texture */
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E"),
+                /* Diamond Ore (Cyan spots) */
+                radial-gradient(circle at 20% 30%, rgba(0, 255, 255, 0.5) 0%, transparent 5px),
+                radial-gradient(circle at 80% 10%, rgba(0, 255, 255, 0.5) 0%, transparent 5px),
+                /* Emerald Ore (Green spots) */
+                radial-gradient(circle at 10% 80%, rgba(0, 255, 0, 0.5) 0%, transparent 6px),
+                radial-gradient(circle at 70% 60%, rgba(0, 255, 0, 0.5) 0%, transparent 5px),
+                /* Redstone Ore (Red spots) */
+                radial-gradient(circle at 50% 50%, rgba(255, 0, 0, 0.4) 0%, transparent 8px),
+                radial-gradient(circle at 90% 90%, rgba(255, 0, 0, 0.4) 0%, transparent 6px),
+                /* Iron Ore (Tan/Orange spots) */
+                radial-gradient(circle at 30% 20%, rgba(210, 180, 140, 0.6) 0%, transparent 5px),
+                radial-gradient(circle at 60% 85%, rgba(210, 180, 140, 0.6) 0%, transparent 5px)
+             `,
+             backgroundSize: "auto, 300px 300px, 450px 450px, 350px 350px, 500px 500px"
+           }}>
+      </div>
 
       {/* 🌋 Lava Pool */}
       <div className="fixed bottom-0 left-0 w-full h-16 bg-[#cf5b13] border-t-4 border-[#ad3f0b] z-40 shadow-[0_-10px_60px_rgba(207,91,19,0.6)] flex items-center justify-center overflow-hidden">
@@ -53,7 +74,7 @@ export default async function DashboardPage() {
       
       {/* Header */}
       <header className="w-full max-w-7xl mx-auto p-6 flex justify-between items-center z-10 relative">
-        <h1 className="text-4xl font-minecraft text-[#aaaaaa] drop-shadow-[4px_4px_0_#000]"><span className="text-[#555]">/</span>dashboard</h1>
+        <h1 className="text-4xl font-minecraft text-[#aaaaaa] drop-shadow-[4px_4px_0_#000]"><span className="text-[#555]">Dashboard</span></h1>
         <div className="bg-[#222] border-2 border-[#444] shadow-[4px_4px_0px_0px_#000] p-2 pl-4 flex items-center gap-4">
            <div className="text-right hidden sm:block">
               <span className="block text-xs text-[#888] font-minecraft uppercase tracking-widest">Player</span>
@@ -123,7 +144,7 @@ export default async function DashboardPage() {
                                       <input type="hidden" name="memberId" value={entry.id} />
                                       <input type="hidden" name="style" value={styleKey} />
                                       <button 
-                                        className={`w-6 h-6 border-2 border-white/50 hover:scale-125 transition-transform ${ORE_THEMES[styleKey].bg}`}
+                                        className={`w-6 h-6 border-2 border-white/50 hover:scale-125 transition-transform ${ORE_THEMES[styleKey].btn} ${ORE_THEMES[styleKey].text} shadow-[0_0_8px_currentColor]`}
                                         title={styleKey}
                                       ></button>
                                    </form>
