@@ -383,7 +383,6 @@ export async function reorderTasks(items: { id: number; position: number }[], wo
   const { userId } = await auth();
   if (!userId) return;
 
-  // Save the new order
   await db.transaction(async (tx) => {
     for (const item of items) {
       await tx.update(tasks)
@@ -392,6 +391,6 @@ export async function reorderTasks(items: { id: number; position: number }[], wo
     }
   });
   
-  // ⚡ CRITICAL FIX: Revalidate the SPECIFIC world page
+  // 👇 Make sure this is using the worldId variable!
   revalidatePath(`/dashboard/world/${worldId}`); 
 }

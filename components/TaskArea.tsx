@@ -6,6 +6,16 @@ import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStr
 import { CSS } from "@dnd-kit/utilities";
 import { toggleTask, deleteTask, updateTaskNote, reorderTasks } from "@/app/actions";
 
+interface Task {
+  id: number;
+  worldId: number;
+  description: string;
+  isCompleted: boolean;
+  creatorId: string;
+  note?: string;
+  position: number;
+}
+
 // --- 1. THE DRAGGABLE CARD COMPONENT ---
 function SortableTask({ task, theme, userId, isOwner, userMap }: any) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: task.id });
@@ -103,28 +113,30 @@ export default function TaskArea({ tasks, theme, userId, isOwner, userMap }: any
   );
 
 const handleDragEnd = (event: any) => {
-    const { active, over } = event;
-    if (active.id !== over?.id) {
-      setItems((items: any) => {
-        const oldIndex = items.findIndex((i: any) => i.id === active.id);
-        const newIndex = items.findIndex((i: any) => i.id === over.id);
-        const newOrder = arrayMove(items, oldIndex, newIndex);
-        
-        // 👇 THIS IS THE FIX 👇
-        // We get the worldId from the first task (items[0])
-        const worldId = items[0]?.worldId; 
-        
-        // Then we pass it to the server action
-        if (worldId) {
-           const updates = newOrder.map((t: any, index: number) => ({ id: t.id, position: index }));
-           reorderTasks(updates, worldId); 
-        }
-        // 👆 END FIX 👆
-        
-        return newOrder;
-      });
+  const { active, over } = event;
+  
+  if (active.id !== over?.id) {
+    const oldIndex = items.findIndex((i: any) => i.id === active.id);
+    const newIndex = items.findIndex((i: any) => i.id === over.id);
+    
+    // We cast this as Task[] so TS knows worldId exists
+    const newOrder = arrayMove(items, oldIndex, newIndex) as Task[];
+
+    setItems(newOrder);
+
+    // Now .worldId will not have a red line!
+    const worldId = newOrder[0]?.worldId; 
+    
+    if (worldId) {
+      const updates = newOrder.map((t: Task, index: number) => ({ 
+        id: t.id, 
+        position: index 
+      }));
+      
+      reorderTasks(updates, worldId);
     }
-  };
+  }
+};
 
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
