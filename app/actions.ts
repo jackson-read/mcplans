@@ -383,14 +383,20 @@ export async function reorderTasks(items: { id: number; position: number }[], wo
   const { userId } = await auth();
   if (!userId) return;
 
-  await db.transaction(async (tx) => {
-    for (const item of items) {
-      await tx.update(tasks)
-        .set({ position: item.position })
-        .where(eq(tasks.id, item.id));
-    }
-  });
-  
-  // 👇 Make sure this is using the worldId variable!
-  revalidatePath(`/dashboard/world/${worldId}`); 
+  console.log(`[REORDER] World: ${worldId}, Items to update: ${items.length}`);
+
+  try {
+    await Promise.all(
+      items.map((item) =>
+        db.update(tasks)
+          .set({ position: item.position })
+          .where(and(eq(tasks.id, item.id), eq(tasks.creatorId, userId))) // Extra security: ensure user owns the task
+      )
+    );
+
+    console.log("[REORDER] Success. Revalidating path...");
+    revalidatePath(`/dashboard/world/${worldId}`);
+  } catch (error) {
+    console.error("[REORDER] Database Error:", error);
+  }
 }

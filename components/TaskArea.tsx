@@ -5,6 +5,7 @@ import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, us
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { toggleTask, deleteTask, updateTaskNote, reorderTasks } from "@/app/actions";
+import { useTransition } from "react";
 
 interface Task {
   id: number;
@@ -38,13 +39,19 @@ function SortableTask({ task, theme, userId, isOwner, userMap }: any) {
     deleteTask(formData);
   };
 
-  return (
+return (
     <div 
       ref={setNodeRef} 
       style={style} 
       {...attributes} 
       {...listeners} 
-      className={`group ${theme.cardBg} border-2 ${theme.border} p-3 shadow-md backdrop-blur-sm hover:shadow-lg transition-all flex flex-col gap-2 h-full touch-none cursor-grab active:cursor-grabbing`}
+      className={`
+        group ${theme.cardBg} border-2 p-3 backdrop-blur-sm transition-all flex flex-col gap-2 h-full touch-none cursor-grab active:cursor-grabbing
+        ${isDragging 
+          ? 'border-white scale-105 rotate-2 z-50 shadow-2xl' // 🚀 The "Dragged" Look
+          : `${theme.border} shadow-md hover:shadow-lg`       // 😴 The "Idle" Look
+        }
+      `}
     >
       <div className="flex items-start justify-between gap-2">
          {/* Checkbox (Stop Propagation so we don't drag) */}
@@ -102,10 +109,16 @@ function SortableTask({ task, theme, userId, isOwner, userMap }: any) {
 
 // --- 2. THE MAIN AREA ---
 export default function TaskArea({ tasks, theme, userId, isOwner, userMap }: any) {
-  const [items, setItems] = useState(tasks);
+  const [items, setItems] = useState<Task[]>(tasks);
+  const [isPending, startTransition] = useTransition();
 
   // Sync with DB updates
-  useEffect(() => { setItems(tasks); }, [tasks]);
+  useEffect(() => { 
+    // ONLY update if we aren't currently dragging/saving
+    if (!isPending) {
+      setItems(tasks); 
+    }
+  }, [tasks, isPending]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -113,47 +126,56 @@ export default function TaskArea({ tasks, theme, userId, isOwner, userMap }: any
   );
 
 const handleDragEnd = (event: any) => {
-  const { active, over } = event;
-  
-  if (active.id !== over?.id) {
-    const oldIndex = items.findIndex((i: any) => i.id === active.id);
-    const newIndex = items.findIndex((i: any) => i.id === over.id);
-    
-    // We cast this as Task[] so TS knows worldId exists
-    const newOrder = arrayMove(items, oldIndex, newIndex) as Task[];
+    const { active, over } = event;
+    if (active.id !== over?.id) {
+      const oldIndex = items.findIndex((i: any) => i.id === active.id);
+      const newIndex = items.findIndex((i: any) => i.id === over.id);
+      const newOrder = arrayMove(items, oldIndex, newIndex) as Task[];
 
-    setItems(newOrder);
+      // 1. Update UI immediately
+      setItems(newOrder);
 
-    // Now .worldId will not have a red line!
-    const worldId = newOrder[0]?.worldId; 
-    
-    if (worldId) {
-      const updates = newOrder.map((t: Task, index: number) => ({ 
-        id: t.id, 
-        position: index 
-      }));
-      
-      reorderTasks(updates, worldId);
+      // 2. Wrap the server call in startTransition
+      const worldId = newOrder[0]?.worldId;
+      if (worldId) {
+        const updates = newOrder.map((t: Task, index: number) => ({ 
+          id: t.id, 
+          position: index 
+        }));
+
+        startTransition(async () => {
+          await reorderTasks(updates, worldId);
+        });
+      }
     }
-  }
-};
+  };
 
-  return (
-    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+return (
+  <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+    <div className="relative"> {/* Added relative wrapper */}
+      
+      {/* 🟢 SAVING INDICATOR */}
+      {isPending && (
+        <div className={`absolute -top-10 right-0 flex items-center gap-2 px-3 py-1 rounded-full bg-black/40 border border-white/10 backdrop-blur-md z-50`}>
+          <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+          <span className={`text-[10px] font-mono uppercase tracking-widest ${theme.text}`}>Syncing with World...</span>
+        </div>
+      )}
+
       <SortableContext items={items.map((t: any) => t.id)} strategy={rectSortingStrategy}>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 transition-opacity duration-500 ${isPending ? 'opacity-80' : 'opacity-100'}`}>
           {items.map((task: any) => (
             <SortableTask 
               key={task.id} 
               task={task} 
               theme={theme} 
               userId={userId} 
-              isOwner={isOwner} // Pass Owner Status
               userMap={userMap} 
             />
           ))}
         </div>
       </SortableContext>
-    </DndContext>
+    </div>
+  </DndContext>
   );
 }
