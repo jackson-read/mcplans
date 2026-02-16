@@ -2,7 +2,7 @@ import { auth, clerkClient } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { worlds, tasks } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, asc } from "drizzle-orm";
 import Link from "next/link";
 import { createTask, toggleTask, deleteTask, updateTaskNote, leaveWorld } from "@/app/actions";
 import SpinWheel from "@/components/SpinWheel";
@@ -205,7 +205,7 @@ export default async function WorldPage({ params }: { params: Promise<{ id: stri
 
   const worldTasks = await db.query.tasks.findMany({
     where: eq(tasks.worldId, worldId),
-    orderBy: [desc(tasks.position), desc(tasks.createdAt)],
+    orderBy: [asc(tasks.position), desc(tasks.createdAt)],
   });
 
   const client = await clerkClient();
@@ -286,6 +286,7 @@ export default async function WorldPage({ params }: { params: Promise<{ id: stri
               tasks={worldTasks} 
               theme={theme} 
               userId={userId} 
+              isOwner={member.role === 'owner'}
               userMap={userMap} 
            />
         </div>
