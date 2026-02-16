@@ -28,13 +28,12 @@ export default async function DashboardPage() {
   if (!userId) return <div>Access Denied</div>;
   const username = user?.username || user?.firstName || "Miner";
 
-  // Fetch Worlds
+  // Fetch Worlds & Invites
   const activeWorlds = await db.query.members.findMany({
     where: and(eq(members.userId, userId), eq(members.status, "accepted")),
     with: { world: true },
   });
 
-  // Fetch Invites
   const pendingInvites = await db.query.members.findMany({
     where: and(eq(members.userId, userId), eq(members.status, "pending")),
     with: { world: true },
@@ -66,7 +65,7 @@ export default async function DashboardPage() {
 
       <main className="flex-1 w-full max-w-7xl mx-auto p-6 z-10 space-y-12">
         
-        {/* 📬 INBOX (Matches style) */}
+        {/* 📬 INBOX */}
         {pendingInvites.length > 0 ? (
           <section className="bg-[#2a2210] border-4 border-[#ffd700] p-6 shadow-[8px_8px_0_#000] relative animate-in fade-in slide-in-from-top-4 duration-500">
             <div className="absolute top-0 right-0 p-2 bg-[#ffd700] text-black font-bold font-minecraft text-xs">NEW!</div>
@@ -85,10 +84,7 @@ export default async function DashboardPage() {
               ))}
             </div>
           </section>
-        ) : (
-           /* Optional: Empty State for Inbox if you want it always visible */
-           null 
-        )}
+        ) : null}
 
         {/* ⛏️ WORLD GRID */}
         {activeWorlds.length === 0 ? (
@@ -99,7 +95,6 @@ export default async function DashboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {activeWorlds.map((entry) => {
               const isOwner = entry.role === 'owner';
-              // 🎨 Determine Theme: Use User Pref OR Default based on role
               const currentStyle = entry.cardStyle === 'default' 
                   ? (isOwner ? 'diamond' : 'iron') 
                   : entry.cardStyle || 'iron';
@@ -115,22 +110,25 @@ export default async function DashboardPage() {
                         {isOwner ? 'OP' : 'PL'}
                      </div>
                      
-                     {/* 🎨 COLOR PICKER (Paintbrush) */}
-                     <div className="absolute top-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <div className="relative group/picker">
-                           <span className="text-xl cursor-pointer hover:scale-110 transition-transform">🖌️</span>
-                           {/* Dropdown */}
-                           <div className="absolute right-0 top-full mt-2 bg-[#111] border-2 border-white p-2 flex gap-1 z-50 w-max invisible group-hover/picker:visible shadow-xl">
-                              {Object.keys(ORE_THEMES).filter(k => k !== 'default').map((styleKey) => (
-                                 <form key={styleKey} action={updateCardStyle}>
-                                    <input type="hidden" name="memberId" value={entry.id} />
-                                    <input type="hidden" name="style" value={styleKey} />
-                                    <button 
-                                      className={`w-6 h-6 border-2 border-white/50 hover:scale-125 transition-transform ${ORE_THEMES[styleKey].bg}`}
-                                      title={styleKey}
-                                    ></button>
-                                 </form>
-                              ))}
+                     {/* 🎨 COLOR PICKER (Fixed Hover Logic) */}
+                     <div className="absolute top-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity z-50">
+                        <div className="relative group/picker pb-2"> {/* Added pb-2 to expand hover area downward */}
+                           <span className="text-xl cursor-pointer hover:scale-110 transition-transform block">🖌️</span>
+                           
+                           {/* Dropdown (Removed margin, added padding bridge) */}
+                           <div className="absolute right-0 top-full pt-1 invisible group-hover/picker:visible">
+                              <div className="bg-[#111] border-2 border-white p-2 flex gap-1 shadow-xl">
+                                {Object.keys(ORE_THEMES).filter(k => k !== 'default').map((styleKey) => (
+                                   <form key={styleKey} action={updateCardStyle}>
+                                      <input type="hidden" name="memberId" value={entry.id} />
+                                      <input type="hidden" name="style" value={styleKey} />
+                                      <button 
+                                        className={`w-6 h-6 border-2 border-white/50 hover:scale-125 transition-transform ${ORE_THEMES[styleKey].bg}`}
+                                        title={styleKey}
+                                      ></button>
+                                   </form>
+                                ))}
+                              </div>
                            </div>
                         </div>
                      </div>
