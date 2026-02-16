@@ -102,7 +102,7 @@ export default function TaskArea({ tasks, theme, userId, isOwner, userMap }: any
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
-  const handleDragEnd = (event: any) => {
+const handleDragEnd = (event: any) => {
     const { active, over } = event;
     if (active.id !== over?.id) {
       setItems((items: any) => {
@@ -110,9 +110,16 @@ export default function TaskArea({ tasks, theme, userId, isOwner, userMap }: any
         const newIndex = items.findIndex((i: any) => i.id === over.id);
         const newOrder = arrayMove(items, oldIndex, newIndex);
         
-        // Save to Server
-        const updates = newOrder.map((t: any, index: number) => ({ id: t.id, position: index }));
-        reorderTasks(updates);
+        // 👇 THIS IS THE FIX 👇
+        // We get the worldId from the first task (items[0])
+        const worldId = items[0]?.worldId; 
+        
+        // Then we pass it to the server action
+        if (worldId) {
+           const updates = newOrder.map((t: any, index: number) => ({ id: t.id, position: index }));
+           reorderTasks(updates, worldId); 
+        }
+        // 👆 END FIX 👆
         
         return newOrder;
       });

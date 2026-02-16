@@ -244,9 +244,6 @@ export async function updateBiome(formData: FormData) {
   revalidatePath(`/dashboard/settings/${worldId}`);
 }
 
-// app/actions.ts
-// Add this to the bottom of your file
-
 export async function sendInvite(formData: FormData) {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
@@ -333,16 +330,12 @@ export async function deleteTask(formData: FormData) {
   const taskId = parseInt(formData.get("taskId") as string);
   const worldId = parseInt(formData.get("worldId") as string);
 
-  // Fetch Task & World to verify permissions
   const task = await db.query.tasks.findFirst({ where: eq(tasks.id, taskId) });
-  const world = await db.query.worlds.findFirst({ where: eq(worlds.id, worldId) });
+  if (!task) return;
 
-  if (!task || !world) return;
-
-  // 👮 Permission Check:
-  // You must be the Task Creator OR the World Owner
-  if (task.creatorId !== userId && world.ownerId !== userId) {
-    throw new Error("You cannot delete a task you didn't create.");
+  // STRICT CHECK: Only the Creator can delete
+  if (task.creatorId !== userId) {
+    throw new Error("Only the creator can delete this task.");
   }
 
   await db.delete(tasks).where(eq(tasks.id, taskId));
@@ -386,11 +379,11 @@ export async function leaveWorld(formData: FormData) {
   redirect("/dashboard");
 }
 
-export async function reorderTasks(items: { id: number; position: number }[]) {
+export async function reorderTasks(items: { id: number; position: number }[], worldId: number) {
   const { userId } = await auth();
   if (!userId) return;
 
-  // Update all items in a transaction (or batch)
+  // Save the new order
   await db.transaction(async (tx) => {
     for (const item of items) {
       await tx.update(tasks)
@@ -399,5 +392,6 @@ export async function reorderTasks(items: { id: number; position: number }[]) {
     }
   });
   
-  revalidatePath("/dashboard");
+  // ⚡ CRITICAL FIX: Revalidate the SPECIFIC world page
+  revalidatePath(`/dashboard/world/${worldId}`); 
 }
