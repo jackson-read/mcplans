@@ -5,6 +5,8 @@ import { worlds, members } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import Link from "next/link";
 import { deletePlan, kickMember, renameWorld, updateBiome } from "@/app/actions";
+import DeleteWorldSection from "@/components/DeleteWorldSection";
+import BiomePicker from "@/components/BiomePicker";
 
 // ⚠️ Next.js 15: params and searchParams are Promises
 export default async function SettingsPage({ 
@@ -161,47 +163,7 @@ export default async function SettingsPage({
         </section>
 
         {/* 🌲 SECTION 2: Biome Selector */}
-        <section className="bg-[#1a1a1a] border-4 border-[#555] p-6 shadow-[8px_8px_0_#000]">
-          <h2 className="text-xl font-minecraft text-[#ccc] mb-6 flex items-center gap-2">
-            <span className="text-[#888]">#</span> World Theme
-          </h2>
-          
-          <form action={updateBiome}>
-            <input type="hidden" name="worldId" value={worldId} />
-            
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
-              {biomes.map((b) => (
-                <label key={b.id} className="cursor-pointer group relative">
-                  <input type="radio" name="biome" value={b.id} defaultChecked={world.biome === b.id} className="hidden peer" />
-                  
-                  {/* The Card */}
-                  <div className={`h-32 ${b.bg} border-4 ${b.border} peer-checked:border-white peer-checked:shadow-[0_0_15px_white] transition-all flex flex-col items-center justify-center p-2 relative overflow-hidden group-hover:-translate-y-1`}>
-                    
-                    {/* Texture Overlay */}
-                    <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}></div>
-                    
-                    {/* Checkmark */}
-                    <div className="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 transition-opacity bg-black/50 rounded-full p-1">
-                      <span className="text-white text-xs">✅</span>
-                    </div>
-
-                    {/* Text - White with Heavy Black Shadow */}
-                    <span className="font-minecraft text-center text-sm drop-shadow-[0_2px_2px_rgba(0,0,0,1)] relative z-10 text-white font-bold">
-                      {b.name}
-                    </span>
-                    <span className="text-[10px] text-white font-bold font-minecraft text-center mt-1 relative z-10 leading-tight drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
-                      {b.desc}
-                    </span>
-                  </div>
-                </label>
-              ))}
-            </div>
-
-            <button className="w-full md:w-auto bg-[#ccc] hover:bg-white text-black font-minecraft font-bold px-6 py-3 border-b-4 border-[#888] active:border-b-0 active:translate-y-1 active:mt-1 transition-all">
-              UPDATE BIOME
-            </button>
-          </form>
-        </section>
+           <BiomePicker currentBiome={world.biome || "plains"} worldId={worldId}/>
 
         {/* 👥 SECTION 3: Members */}
         <section className="bg-[#0a1a1a] border-4 border-[#00aaaa] p-6 shadow-[8px_8px_0_#000]">
@@ -257,22 +219,7 @@ export default async function SettingsPage({
         </section>
 
         {/* ⚠️ SECTION 4: Danger Zone */}
-        <section className="bg-[#1a0505] border-4 border-[#aa0000] p-6 shadow-[8px_8px_0_#000] opacity-80 hover:opacity-100 transition-opacity">
-          <h2 className="text-xl font-minecraft text-[#ff5555] mb-2 flex items-center gap-2">
-            <span>🧨</span> Danger Zone
-          </h2>
-          <p className="text-[#aa5555] font-minecraft text-xs mb-6">
-            Deleting a world is permanent. But you can always make another one. 
-          </p>
-
-          <form action={deletePlan} className="flex justify-end">
-            <input type="hidden" name="id" value={worldId} />
-            <button className="bg-[#aa0000] hover:bg-[#ff5555] text-white font-minecraft px-6 py-3 border-b-4 border-[#660000] active:border-b-0 active:translate-y-1 active:mt-1 transition-all flex items-center gap-2 group">
-              <span className="group-hover:animate-pulse">⚠</span> DELETE WORLD
-            </button>
-          </form>
-        </section>
-
+            <DeleteWorldSection worldId={worldId}/>
       </div>
     </div>
   );
