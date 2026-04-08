@@ -57,80 +57,75 @@ export default async function WorldPage({ params }: { params: Promise<{ id: stri
   const theme = getTheme(world.biome || 'plains');
 
 return (
-    <div className="min-h-screen font-sans relative overflow-x-hidden selection:bg-white/20">
-      
-      {/* 1. USE THE NEW LOCAL BACKGROUND COMPONENT */}
-      <LocalBiomeBackground defaultBiome={world.biome || 'plains'} />
+    <div className="min-h-screen font-sans relative overflow-x-hidden selection:bg-white/20">
+      
+      {/* USE THE LOCAL BACKGROUND COMPONENT */}
+      <LocalBiomeBackground defaultBiome={world.biome || 'plains'} />
 
-      {/* HEADER */}
-      <header className={`relative z-10 p-6 flex flex-col md:flex-row justify-between items-center gap-4 ${theme.cardBg} backdrop-blur-sm border-b-4 ${theme.border}`}>
-        <div className="flex items-center gap-4">
-          <Link href="/dashboard" className="text-white hover:-translate-x-1 transition-transform">&larr;</Link>
-          <div>
-            <h1 className={`text-3xl font-minecraft drop-shadow-md ${theme.text}`}>{world.name}</h1>
+      {/* 🟩 FIXED HEADER (Robust Flex & Centering) */}
+      <header className={`relative z-10 py-6 px-6 flex flex-row justify-between items-center gap-6 ${theme.cardBg} backdrop-blur-sm border-b-4 ${theme.border}`}>
+        
+        {/* 🟢 LEFT CONTAINER: Back button, Name, and Info text */}
+        <div className="flex flex-col items-start gap-1 relative pl-8">
+          {/* Back Arrow */}
+          <Link href="/dashboard" className="absolute left-0 top-0 text-white hover:-translate-x-1 transition-transform p-1">
+            &larr;
+          </Link>
 
-              <div className={`text-[10px] uppercase font-bold tracking-widest ${theme.text} opacity-80 flex items-center gap-2`}>
+          <div>
+            <h1 className={`text-4xl font-minecraft drop-shadow-md leading-none ${theme.text}`}>{world.name}</h1>
+            
+            <div className={`text-[10px] uppercase font-bold tracking-widest ${theme.text} opacity-80 flex items-center gap-2 mt-1`}>
                 <span>Biome: {world.biome === 'ocean' ? 'Ocean' : (world.biome || "Plains")}</span>
-              
-                {/* EVERYONE gets the Settings button now */}
-                <Link href={`/dashboard/settings/${worldId}?from=world`} className="hover:underline decoration-white cursor-pointer ml-2">[Settings]</Link>
-              
-                {/* Only non-owners get the Leave button here (Owners delete in settings) */}
+                
+                {/* 🛑 SETTINGS BUTTON */}
+                <Link href={`/dashboard/settings/${worldId}?from=world`} className="hover:underline decoration-white cursor-pointer ml-2">
+                  [Settings]
+                </Link>
+  
+                {/* LEAVE BUTTON */}
                 {member.role !== 'owner' && (
                   <form action={leaveWorld}>
                     <input type="hidden" name="worldId" value={worldId} />
                     <button className="hover:text-red-400 hover:underline decoration-red-400 cursor-pointer bg-transparent border-none p-0 ml-4">[Leave World]</button>
                   </form>
-              )}
+                )}
               </div>
-          </div>
-        </div>
+          </div>
+        </div>
         
-        {/* Heads */}
-        <div className="flex -space-x-3 hover:space-x-1 transition-all">
-           {world.members.map(m => {
-             const user = userMap.get(m.userId);
-             return (
-               <div key={m.id} className="relative group cursor-help">
-                 <img src={user?.img} alt={user?.name} className={`w-10 h-10 rounded-md border-2 ${theme.border} bg-black shadow-md transition-transform hover:scale-110`} />
-                 <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-black/90 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 font-minecraft border border-white/10">
-                   {user?.name} {m.role === 'owner' && '👑'}
+        {/* 🟣 RIGHT CONTAINER: Heads & Invite Button */}
+        <div className="flex flex-row items-center gap-4 h-full">
+          <div className="flex -space-x-4 hover:-space-x-1 transition-all items-center">
+             {world.members.map(m => {
+               const user = userMap.get(m.userId);
+               return (
+                 <div key={m.id} className="relative group cursor-help">
+                   <img src={user?.img} alt={user?.name} className={`w-12 h-12 rounded-md border-2 ${theme.border} bg-black shadow-md transition-transform hover:scale-110`} />
+                   <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-black/90 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 font-minecraft border border-white/10">
+                     {user?.name} {m.role === 'owner' && '👑'}
+                   </div>
                  </div>
-               </div>
-             )
-           })}
-           <Link href={`/dashboard/invite/${worldId}`}>
-             <button className={`w-10 h-10 rounded-md border-2 border-dashed ${theme.border} text-white flex items-center justify-center opacity-70 hover:opacity-100 hover:bg-white/10 transition-all text-xl`}>+</button>
-           </Link>
+               )
+             })}
+          </div>
+
+          <Link href={`/dashboard/invite/${worldId}`}>
+            <button className={`w-12 h-12 rounded-md border-2 border-dashed ${theme.border} text-white flex items-center justify-center opacity-70 hover:opacity-100 hover:bg-white/10 transition-all text-2xl`}>+</button>
+          </Link>
         </div>
       </header>
 
-      {/* MAIN CONTENT */}
-      <main className="relative z-10 max-w-5xl mx-auto p-6 grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
-        
-        {/* LEFT COL: Wheel */}
-        <div className="md:col-span-1">
-           <SpinWheel tasks={worldTasks} theme={theme} />
-        </div>
-
-        {/* RIGHT COL: Tasks */}
-        <div className="md:col-span-2 space-y-6">
-           <div className={`${theme.cardBg} border-4 ${theme.border} p-4 shadow-xl backdrop-blur-sm`}>
-              <form action={createTask} className="flex gap-2">
-                 <input type="hidden" name="worldId" value={worldId} />
-                 <input name="description" required placeholder="Add a new task..." className={`flex-1 bg-black/20 border-2 ${theme.border} ${theme.text} rounded p-3 focus:outline-none focus:bg-black/40 transition-colors placeholder:text-white/30`} />
-                 <button className={`${theme.accent} ${theme.text} px-6 font-bold font-minecraft border-b-4 border-black/30 active:border-b-0 active:translate-y-1 transition-all`}>ADD</button>
-              </form>
-           </div>
-
-           <TaskArea 
-              tasks={worldTasks} 
-              theme={theme} 
-              userId={userId} 
-              isOwner={member.role === 'owner'}
-              userMap={userMap} 
-           />
-        </div>
+      {/* MAIN CONTENT: Widened layout, delegates grid to TaskArea */}
+      <main className="relative z-10 max-w-7xl w-full mx-auto p-6">
+        <TaskArea 
+          tasks={worldTasks} 
+          theme={theme} 
+          userId={userId} 
+          isOwner={member.role === 'owner'}
+          userMap={userMap} 
+          worldId={worldId}
+        />
       </main>
     </div>
   );
