@@ -18,7 +18,11 @@ interface Task {
 
 // --- 1. THE DRAGGABLE CARD COMPONENT ---
 function SortableTask({ task, theme, userId, isOwner, userMap }: any) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: task.id });
+  // FIX 1: We pass disabled: task.isCompleted so you can't drag finished tasks
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ 
+    id: task.id,
+    disabled: task.isCompleted 
+  });
   
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -28,9 +32,8 @@ function SortableTask({ task, theme, userId, isOwner, userMap }: any) {
   };
 
   const isMyTask = task.creatorId === userId;
-  const canDelete = isMyTask || isOwner; // Owners can delete anything
+  const canDelete = isMyTask || isOwner;
 
-  // Helper to handle delete
   const handleDelete = () => {
     const formData = new FormData();
     formData.append("taskId", task.id);
@@ -45,15 +48,15 @@ return (
       {...attributes} 
       {...listeners} 
       className={`
-        group ${theme.cardBg} border-2 p-3 backdrop-blur-sm transition-all flex flex-col gap-2 h-full touch-none cursor-grab active:cursor-grabbing
+        group ${theme.cardBg} border-2 p-3 backdrop-blur-sm transition-all flex flex-col gap-2 h-full touch-none
+        ${!task.isCompleted ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'}
         ${isDragging 
-          ? 'border-white scale-105 rotate-2 z-50 shadow-2xl' // 🚀 The "Dragged" Look
-          : `${theme.border} shadow-md hover:shadow-lg`       // 😴 The "Idle" Look
+          ? 'border-white scale-105 rotate-2 z-50 shadow-2xl' 
+          : `${theme.border} shadow-md hover:shadow-lg`       
         }
       `}
     >
       <div className="flex items-start justify-between gap-2">
-         {/* Checkbox (Stop Propagation so we don't drag) */}
          <button 
            onPointerDown={(e) => e.stopPropagation()} 
            onClick={() => {
@@ -67,7 +70,6 @@ return (
             {task.isCompleted && <span className="text-sm leading-none">✓</span>}
          </button>
          
-         {/* Delete (Only show if allowed) */}
          {canDelete && (
            <button 
               onPointerDown={(e) => e.stopPropagation()} 
@@ -94,7 +96,15 @@ return (
                name="note" 
                placeholder="Note..." 
                defaultValue={task.note || ""} 
-               onKeyDown={(e) => { if(e.key === 'Enter') { e.preventDefault(); e.currentTarget.blur(); e.currentTarget.form?.requestSubmit(); }}}
+               // FIX 2: e.stopPropagation() prevents dnd-kit from stealing the spacebar!
+               onKeyDown={(e) => { 
+                 e.stopPropagation(); 
+                 if(e.key === 'Enter') { 
+                   e.preventDefault(); 
+                   e.currentTarget.blur(); 
+                   e.currentTarget.form?.requestSubmit(); 
+                 }
+               }}
                className={`w-full bg-transparent text-xs ${theme.text} opacity-80 focus:opacity-100 focus:outline-none resize-none h-6 focus:h-12 transition-all placeholder:text-white/20`} 
              />
           </form>
@@ -112,12 +122,7 @@ export default function TaskArea({ tasks, theme, userId, isOwner, userMap }: any
   const [isPending, startTransition] = useTransition();
   const isManuallyUpdating = useRef(false);
 
-  // Sync with DB updates
-useEffect(() => {
-    // Only overwrite our local items if:
-    // 1. We aren't in the middle of a save (isPending)
-    // 2. We haven't just finished a drag (isManuallyUpdating)
-    // 3. OR the number of tasks actually changed (Add/Delete)
+  useEffect(() => {
     if ((!isPending && !isManuallyUpdating.current) || tasks.length !== items.length) {
       setItems(tasks);
     }
@@ -128,41 +133,35 @@ useEffect(() => {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
-const handleDragEnd = (event: any) => {
+  const handleDragEnd = (event: any) => {
     const { active, over } = event;
     if (active.id !== over?.id) {
       const oldIndex = items.findIndex((i: any) => i.id === active.id);
       const newIndex = items.findIndex((i: any) => i.id === over.id);
       const newOrder = arrayMove(items, oldIndex, newIndex) as Task[];
 
-      // 1. Activate the Lock
       isManuallyUpdating.current = true;
       setItems(newOrder);
 
       const worldId = newOrder[0]?.worldId;
       if (worldId) {
-        const updates = newOrder.map((t: Task, index: number) => ({ 
-          id: t.id, 
-          position: index 
-        }));
-
+        const updates = newOrder.map((t: Task, index: number) => ({ id: t.id, position: index }));
         startTransition(async () => {
           await reorderTasks(updates, worldId);
-          
-          // 2. Release the lock after a short delay to let the cache settle
-          setTimeout(() => {
-            isManuallyUpdating.current = false;
-          }, 2000); 
+          setTimeout(() => { isManuallyUpdating.current = false; }, 2000); 
         });
       }
     }
   };
 
+  // FIX 3: Split the array into active and completed
+  const activeTasks = items.filter((t: any) => !t.isCompleted);
+  const completedTasks = items.filter((t: any) => t.isCompleted);
+
 return (
   <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-    <div className="relative"> {/* Added relative wrapper */}
+    <div className="relative"> 
       
-      {/* 🟢 SAVING INDICATOR */}
       {isPending && (
         <div className={`absolute -top-10 right-0 flex items-center gap-2 px-3 py-1 rounded-full bg-black/40 border border-white/10 backdrop-blur-md z-50`}>
           <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
@@ -170,19 +169,30 @@ return (
         </div>
       )}
 
-      <SortableContext items={items.map((t: any) => t.id)} strategy={rectSortingStrategy}>
+      {/* 🟢 ACTIVE TASKS (Draggable) */}
+      <SortableContext items={activeTasks.map((t: any) => t.id)} strategy={rectSortingStrategy}>
         <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 transition-opacity duration-500 ${isPending ? 'opacity-80' : 'opacity-100'}`}>
-          {items.map((task: any) => (
-            <SortableTask 
-              key={task.id} 
-              task={task} 
-              theme={theme} 
-              userId={userId} 
-              userMap={userMap} 
-            />
+          {activeTasks.map((task: any) => (
+            // Added isOwner={isOwner} here so permissions carry through properly
+            <SortableTask key={task.id} task={task} theme={theme} userId={userId} userMap={userMap} isOwner={isOwner} />
           ))}
         </div>
       </SortableContext>
+
+      {/* 🔴 COMPLETED TASKS LOG (Static) */}
+      {completedTasks.length > 0 && (
+        <div className="mt-12 border-t-4 border-black/20 pt-8">
+           <h3 className={`font-minecraft text-xl mb-6 opacity-60 ${theme.text} flex items-center gap-2`}>
+             <span>📜</span> Task History
+           </h3>
+           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 opacity-60 grayscale-[50%]">
+             {completedTasks.map((task: any) => (
+                <SortableTask key={task.id} task={task} theme={theme} userId={userId} userMap={userMap} isOwner={isOwner} />
+             ))}
+           </div>
+        </div>
+      )}
+
     </div>
   </DndContext>
   );
