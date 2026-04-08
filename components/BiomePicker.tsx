@@ -255,27 +255,30 @@ export default function BiomePicker({ currentBiome, worldId, isOwner }: { curren
 
 {/* 💾 Footer */}
    <div className="border-t-2 border-[#333] pt-4 flex justify-end items-center">
-      <button 
-        onClick={async () => {
-          if (isOwner) {
-            // Owners save globally to the database
-            const fd = new FormData();
-            fd.append('worldId', worldId.toString());
-            fd.append('biome', selected);
-            await updateBiome(fd);
-            router.push(`/dashboard/world/${worldId}`);
-            router.refresh();
-          } else {
-            // Members save locally to their browser
-            localStorage.setItem('localBiomeOverride', selected);
-            router.push(`/dashboard/world/${worldId}`);
-            router.refresh();
-          }
-        }}
-        className="bg-[#ccc] hover:bg-white text-black font-minecraft font-bold px-8 py-3 border-b-4 border-[#888] active:border-b-0 active:translate-y-1 active:mt-1 transition-all"
-      >
-         {isOwner ? "APPLY GLOBALLY" : "APPLY LOCALLY"}
-      </button>
+<button 
+           onClick={async () => {
+             if (isOwner) {
+               // Owners save globally to the database
+               const fd = new FormData();
+               fd.append('worldId', worldId.toString());
+               fd.append('biome', selected);
+               await updateBiome(fd);
+               
+               // Clear local and force a hard browser redirect
+               localStorage.removeItem('localBiomeOverride'); 
+               window.location.href = `/dashboard/world/${worldId}`; 
+             } else {
+               // Members save locally to their browser
+               localStorage.setItem('localBiomeOverride', selected);
+               
+               // Force a hard browser redirect
+               window.location.href = `/dashboard/world/${worldId}`;
+             }
+           }}
+           className="bg-[#ccc] hover:bg-white text-black font-minecraft font-bold px-8 py-3 border-b-4 border-[#888] active:border-b-0 active:translate-y-1 active:mt-1 transition-all"
+         >
+            {isOwner ? "APPLY GLOBALLY" : "APPLY LOCALLY"}
+         </button>
    </div>
 
     </section>
