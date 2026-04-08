@@ -1,15 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
-export default function LocalBiomeBackground({ defaultBiome }: { defaultBiome: string }) {
-  const [biome, setBiome] = useState(defaultBiome);
-
-  useEffect(() => {
-    // Check if the user has selected a temporary local biome
-    const localOverride = localStorage.getItem('localBiomeOverride');
-    if (localOverride) setBiome(localOverride);
-  }, []);
+export default function LocalBiomeBackground({ biome }: { biome: string }) {
 
   return (
     // Note: I set this back to 'fixed' so it covers the whole screen on the world page!

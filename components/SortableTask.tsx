@@ -1,4 +1,4 @@
-'use client';
+/*'use client';
 
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -25,4 +25,4 @@ export function SortableTask({ id, children }: Props) {
       {children}
     </div>
   );
-}
+}*/
