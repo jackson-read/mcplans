@@ -80,8 +80,16 @@ return (
         <p className={`text-[9px] opacity-40 mt-1 font-mono uppercase ${theme.text}`}>By {userMap.get(task.creatorId || "")?.name || 'Unknown'}</p>
       </div>
 
-      <div className={`mt-auto pt-2 border-t ${theme.border} rounded p-1`}>
+<div className={`mt-auto pt-2 border-t ${theme.border} rounded p-1`}>
         {isMyTask ? (
+          <form 
+            onPointerDown={(e) => e.stopPropagation()} 
+            action={updateTaskNote}
+            className="w-full"
+          >
+             <input type="hidden" name="taskId" value={task.id} />
+             <input type="hidden" name="worldId" value={task.worldId} />
+             
              <textarea 
                name="note" 
                placeholder="Note..." 
@@ -94,11 +102,15 @@ return (
                  }
                }}
                onBlur={(e) => {
-                 const fd = new FormData(e.currentTarget.form!);
-                 updateTaskNote(fd);
+                 // Now that the form exists, this will actually grab the data and save it!
+                 if (e.currentTarget.form) {
+                   const fd = new FormData(e.currentTarget.form);
+                   updateTaskNote(fd);
+                 }
                }}
                className={`w-full bg-transparent text-xs ${theme.text} opacity-80 focus:opacity-100 focus:outline-none resize-none h-6 focus:h-12 transition-all placeholder:text-white/20`} 
              />
+          </form>
         ) : (
           task.note ? <p className={`text-xs opacity-70 italic ${theme.text}`}>"{task.note}"</p> : <p className={`text-[9px] opacity-20 italic ${theme.text}`}>No notes.</p>
         )}
@@ -162,7 +174,7 @@ return (
       {/* 🟢 LEFT COLUMN: Task History (Static) */}
       <div className="lg:col-span-1 flex flex-col gap-4">
         <h3 className={`font-minecraft text-xl border-b-2 ${theme.border} pb-2 ${theme.text} flex items-center gap-2`}>
-          <span>📜</span> History
+          <span></span> Task History
         </h3>
         {completedTasks.length === 0 ? (
           <p className={`text-sm opacity-50 ${theme.text} font-minecraft`}>No tasks completed.</p>
