@@ -264,10 +264,12 @@ export default function BiomePicker({ currentBiome, worldId, isOwner }: { curren
             fd.append('biome', selected);
             await updateBiome(fd);
             router.push(`/dashboard/world/${worldId}`);
+            router.refresh();
           } else {
             // Members save locally to their browser
             localStorage.setItem('localBiomeOverride', selected);
             router.push(`/dashboard/world/${worldId}`);
+            router.refresh();
           }
         }}
         className="bg-[#ccc] hover:bg-white text-black font-minecraft font-bold px-8 py-3 border-b-4 border-[#888] active:border-b-0 active:translate-y-1 active:mt-1 transition-all"

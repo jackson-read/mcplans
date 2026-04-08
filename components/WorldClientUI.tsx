@@ -20,13 +20,17 @@ const getTheme = (biome: string) => {
 };
 
 export default function WorldClientUI({ world, member, worldTasks, userMapObj, userId, worldId }: any) {
-  const [biome, setBiome] = useState(world.biome || 'plains');
+const [biome, setBiome] = useState(world.biome || 'plains');
 
-  // Check local storage ONCE so the Header and Background perfectly match
+  // Check local storage, and sync with the database if it changes
   useEffect(() => {
     const local = localStorage.getItem('localBiomeOverride');
-    if (local) setBiome(local);
-  }, []);
+    if (local) {
+      setBiome(local);
+    } else {
+      setBiome(world.biome || 'plains'); // Fallback to the fresh DB biome
+    }
+  }, [world.biome]); 
 
   const theme = getTheme(biome);
   const userMap = new Map<string, { name: string, img: string }>(Object.entries(userMapObj));
