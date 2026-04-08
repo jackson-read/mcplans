@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { updateBiome } from "@/app/actions";
+import { useRouter } from "next/navigation";
 
 // 🎨 1. THE EXACT BACKGROUND COMPONENT (Adapted for Preview)
 // I changed 'fixed' to 'absolute' so it stays inside the preview box.
@@ -173,8 +174,9 @@ const BIOMES = [
   { id: "end", name: "The End", bg: "bg-[#ebe6c5]" },
 ];
 
-export default function BiomePicker({ currentBiome, worldId }: { currentBiome: string, worldId: number }) {
+export default function BiomePicker({ currentBiome, worldId, isOwner }: { currentBiome: string, worldId: number, isOwner: boolean }) {
   const [selected, setSelected] = useState(currentBiome);
+  const router = useRouter();
   
   const activeTheme = BIOMES.find(b => b.id === selected) || BIOMES[0];
 
@@ -251,16 +253,28 @@ export default function BiomePicker({ currentBiome, worldId }: { currentBiome: s
 
       </div>
 
-      {/* 💾 Footer */}
-      <div className="border-t-2 border-[#333] pt-4 flex justify-end items-center">
-         <form action={updateBiome}>
-            <input type="hidden" name="worldId" value={worldId} />
-            <input type="hidden" name="biome" value={selected} />
-            <button className="bg-[#ccc] hover:bg-white text-black font-minecraft font-bold px-8 py-3 border-b-4 border-[#888] active:border-b-0 active:translate-y-1 active:mt-1 transition-all">
-               APPLY THEME
-            </button>
-         </form>
-      </div>
+{/* 💾 Footer */}
+   <div className="border-t-2 border-[#333] pt-4 flex justify-end items-center">
+      <button 
+        onClick={async () => {
+          if (isOwner) {
+            // Owners save globally to the database
+            const fd = new FormData();
+            fd.append('worldId', worldId.toString());
+            fd.append('biome', selected);
+            await updateBiome(fd);
+            router.push(`/dashboard/world/${worldId}`);
+          } else {
+            // Members save locally to their browser
+            localStorage.setItem('localBiomeOverride', selected);
+            router.push(`/dashboard/world/${worldId}`);
+          }
+        }}
+        className="bg-[#ccc] hover:bg-white text-black font-minecraft font-bold px-8 py-3 border-b-4 border-[#888] active:border-b-0 active:translate-y-1 active:mt-1 transition-all"
+      >
+         {isOwner ? "APPLY GLOBALLY" : "APPLY LOCALLY"}
+      </button>
+   </div>
 
     </section>
   );
