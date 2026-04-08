@@ -70,13 +70,15 @@ return (
             {task.isCompleted && <span className="text-sm leading-none">✓</span>}
          </button>
          
-         {canDelete && (
-           <button 
-              onPointerDown={(e) => e.stopPropagation()} 
-              onClick={handleDelete}
-              className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-200 transition-opacity text-xs font-bold cursor-pointer"
-           >X</button>
-         )}
+            {canDelete && (
+              <form action={deleteTask} onPointerDown={(e) => e.stopPropagation()}>
+                <input type="hidden" name="taskId" value={task.id} />
+                <input type="hidden" name="worldId" value={task.worldId} />
+                <button type="submit" className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-200 transition-opacity text-xs font-bold cursor-pointer">
+                X
+                </button>
+              </form>
+              )}
       </div>
 
       <div className="flex-1">
@@ -92,18 +94,21 @@ return (
           >
              <input type="hidden" name="taskId" value={task.id} />
              <input type="hidden" name="worldId" value={task.worldId} />
-             <textarea 
+              <textarea 
                name="note" 
                placeholder="Note..." 
                defaultValue={task.note || ""} 
-               // FIX 2: e.stopPropagation() prevents dnd-kit from stealing the spacebar!
                onKeyDown={(e) => { 
                  e.stopPropagation(); 
                  if(e.key === 'Enter') { 
                    e.preventDefault(); 
-                   e.currentTarget.blur(); 
-                   e.currentTarget.form?.requestSubmit(); 
+                   e.currentTarget.blur(); // Blur triggers the save below
                  }
+               }}
+               onBlur={(e) => {
+                 // Build the form data directly and send it to the server action
+                 const fd = new FormData(e.currentTarget.form!);
+                 updateTaskNote(fd);
                }}
                className={`w-full bg-transparent text-xs ${theme.text} opacity-80 focus:opacity-100 focus:outline-none resize-none h-6 focus:h-12 transition-all placeholder:text-white/20`} 
              />

@@ -26,15 +26,18 @@ export default async function SettingsPage({
   const { userId } = await auth();
   if (!userId) redirect("/");
 
-  // 1. Fetch World & Verify Ownership
+// 1. Fetch World & Verify Membership (Not just ownership!)
   const world = await db.query.worlds.findFirst({
     where: eq(worlds.id, worldId),
     with: { members: true }
   });
 
-  if (!world || world.ownerId !== userId) {
-    redirect("/dashboard");
-  }
+  if (!world) redirect("/dashboard");
+  
+  const currentUserMember = world.members.find(m => m.userId === userId);
+  if (!currentUserMember) redirect("/dashboard"); // Kick out randoms
+
+  const isOwner = currentUserMember.role === 'owner';
 
   // 2. Fetch Real Names from Clerk
   const client = await clerkClient();
@@ -140,6 +143,7 @@ export default async function SettingsPage({
         </div>
 
         {/* ✏️ SECTION 1: Rename */}
+        {isOwner && (
         <section className="bg-[#1a1a1a] border-4 border-[#555] p-6 shadow-[8px_8px_0_#000]">
           <h2 className="text-xl font-minecraft text-[#ccc] mb-6 flex items-center gap-2">
             <span className="text-[#888]">#</span> General
@@ -161,11 +165,13 @@ export default async function SettingsPage({
             </button>
           </form>
         </section>
+        )}
 
         {/* 🌲 SECTION 2: Biome Selector */}
-           <BiomePicker currentBiome={world.biome || "plains"} worldId={worldId}/>
+           <BiomePicker currentBiome={world.biome || "plains"} worldId={worldId} isOwner={isOwner}/>
 
         {/* 👥 SECTION 3: Members */}
+        {isOwner && (
         <section className="bg-[#0a1a1a] border-4 border-[#00aaaa] p-6 shadow-[8px_8px_0_#000]">
           <div className="flex justify-between items-center mb-6 border-b-2 border-[#00aaaa]/30 pb-4">
             <h2 className="text-xl font-minecraft text-[#00aaaa] flex items-center gap-2">
@@ -217,9 +223,10 @@ export default async function SettingsPage({
             })}
           </div>
         </section>
+        )}
 
         {/* ⚠️ SECTION 4: Danger Zone */}
-            <DeleteWorldSection worldId={worldId}/>
+            {isOwner && <DeleteWorldSection worldId={worldId}/>}
       </div>
     </div>
   );

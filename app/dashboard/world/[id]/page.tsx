@@ -68,22 +68,21 @@ return (
           <Link href="/dashboard" className="text-white hover:-translate-x-1 transition-transform">&larr;</Link>
           <div>
             <h1 className={`text-3xl font-minecraft drop-shadow-md ${theme.text}`}>{world.name}</h1>
-            <div className={`text-[10px] uppercase font-bold tracking-widest ${theme.text} opacity-80 flex items-center gap-2`}>
-            <span>Biome: {world.biome === 'ocean' ? 'Ocean' : (world.biome || "Plains")}</span>
-              
-              {/* 2. ADD THE LOCAL OVERRIDE DROPDOWN HERE */}
-              <BiomeDropdown />
 
-              {/* 🛑 LEAVE / SETTINGS LOGIC */}
-              {member.role === 'owner' ? (
-              <Link href={`/dashboard/settings/${worldId}?from=world`} className="hover:underline decoration-white cursor-pointer ml-2">[Settings]</Link>
-              ) : (
-                <form action={leaveWorld}>
-                  <input type="hidden" name="worldId" value={worldId} />
-                  <button className="hover:text-red-400 hover:underline decoration-red-400 cursor-pointer bg-transparent border-none p-0 ml-4">[Leave World]</button>
-                </form>
-              )}
-            </div>
+              <div className={`text-[10px] uppercase font-bold tracking-widest ${theme.text} opacity-80 flex items-center gap-2`}>
+                <span>Biome: {world.biome === 'ocean' ? 'Ocean' : (world.biome || "Plains")}</span>
+              
+                {/* EVERYONE gets the Settings button now */}
+                <Link href={`/dashboard/settings/${worldId}?from=world`} className="hover:underline decoration-white cursor-pointer ml-2">[Settings]</Link>
+              
+                {/* Only non-owners get the Leave button here (Owners delete in settings) */}
+                {member.role !== 'owner' && (
+                  <form action={leaveWorld}>
+                    <input type="hidden" name="worldId" value={worldId} />
+                    <button className="hover:text-red-400 hover:underline decoration-red-400 cursor-pointer bg-transparent border-none p-0 ml-4">[Leave World]</button>
+                  </form>
+              )}
+              </div>
           </div>
         </div>
         
