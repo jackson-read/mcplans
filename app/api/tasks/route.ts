@@ -15,10 +15,16 @@ export async function GET(request: NextRequest) {
         where: eq(tasks.worldId, parseInt(worldId)),
         columns: {
             id: true,
-            taskName: true,
+            description: true, 
             isCompleted: true,
         }
     });
 
-    return NextResponse.json(worldTasks);
+    const formattedTasks = worldTasks.map(task => ({
+        id: task.id,
+        taskName: task.description,
+        isCompleted: task.isCompleted
+    }));
+
+    return NextResponse.json(formattedTasks);
 }
