@@ -2,12 +2,12 @@
 
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { db } from "@/db";
-import { worlds, members, tasks } from "@/db/schema";
+import { worlds, members, tasks, linkingCodes } from "@/db/schema";
 import { redirect } from "next/navigation";
 import { eq, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { customAlphabet } from 'nanoid';
 
-// REPLACE YOUR OLD createPlan WITH THIS:
 export async function createPlan(formData: FormData) {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
@@ -400,4 +400,19 @@ export async function reorderTasks(items: { id: number; position: number }[], wo
   } catch (error) {
     console.error("REORDER ERROR:", error);
   }
+}
+
+const generateCode = customAlphabet('ABCDEFGHJKLMNPQRSTUVWXYZ23456789', 6);
+
+export async function createLinkingCode(worldId: number) {
+  const newCode = generateCode();
+
+  return await db.transaction(async (tx) => {
+    await tx.delete(linkingCodes).where(eq(linkingCodes.worldId, worldId));
+    await tx.insert(linkingCodes).values({
+      code: newCode,
+      worldId: worldId,
+    });
+    return newCode;
+  });
 }

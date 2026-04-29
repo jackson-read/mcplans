@@ -4,11 +4,11 @@ import { db } from "@/db";
 import { worlds, members } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import Link from "next/link";
-import { deletePlan, kickMember, renameWorld, updateBiome } from "@/app/actions";
+import { deletePlan, kickMember, renameWorld, updateBiome, createLinkingCode } from "@/app/actions";
 import DeleteWorldSection from "@/components/DeleteWorldSection";
 import BiomePicker from "@/components/BiomePicker";
+import LinkServerSection from "@/components/LinkServerSection";
 
-// ⚠️ Next.js 15: params and searchParams are Promises
 export default async function SettingsPage({ 
   params, 
   searchParams 
@@ -170,6 +170,8 @@ export default async function SettingsPage({
         {/* 🌲 SECTION 2: Biome Selector */}
            <BiomePicker currentBiome={world.biome || "plains"} worldId={worldId} isOwner={isOwner}/>
 
+        {isOwner && <LinkServerSection worldId={worldId}/>}   
+
         {/* 👥 SECTION 3: Members */}
         {isOwner && (
         <section className="bg-[#0a1a1a] border-4 border-[#00aaaa] p-6 shadow-[8px_8px_0_#000]">
@@ -231,3 +233,4 @@ export default async function SettingsPage({
     </div>
   );
 }
+

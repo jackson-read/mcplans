@@ -42,3 +42,9 @@ export const tasks = pgTable("tasks", {
   note: text("note"), // The custom comment/note
   position: integer("position").default(0),
 });
+
+export const linkingCodes = pgTable('linking_codes', {
+  code: text('code').primaryKey(),
+  worldId: integer('world_id').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
