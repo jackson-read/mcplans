@@ -405,21 +405,19 @@ export async function reorderTasks(items: { id: number; position: number }[], wo
 const generateCode = customAlphabet('ABCDEFGHJKLMNPQRSTUVWXYZ23456789', 6);
 
 export async function createLinkingCode(worldId: number) {
-  console.log("Creating code for world:", worldId);
   const newCode = generateCode();
 
   try {
-    return await db.transaction(async (tx) => {
-      await tx.delete(linkingCodes).where(eq(linkingCodes.worldId, worldId));
-      await tx.insert(linkingCodes).values({
-        code: newCode,
-        worldId: worldId,
-      });
-      console.log("Code generated successfully:", newCode);
-      return newCode;
+    await db.delete(linkingCodes).where(eq(linkingCodes.worldId, worldId));
+
+    await db.insert(linkingCodes).values({
+      code: newCode,
+      worldId: worldId,
     });
+
+    return newCode;
   } catch (error) {
     console.error("DATABASE ERROR:", error);
-    throw error;
+    throw new Error("Failed to generate linking code.");
   }
 }
