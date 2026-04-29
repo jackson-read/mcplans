@@ -38,20 +38,36 @@ export default function LinkServerSection({ worldId }: { worldId: number }) {
           {loading ? "GENERATING..." : "GENERATE LINKING CODE"}
         </button>
       ) : (
-        <div className="space-y-4">
-          <div className="bg-black/60 border-2 border-dashed border-[#00aaaa] p-4 text-center">
-            <p className="text-[#888] text-[10px] font-minecraft mb-1 uppercase tracking-tighter">Your Secret Key (Expires in 5m)</p>
-            <p className="text-3xl font-minecraft text-[#00ffff] tracking-widest">
-              {code}
-            </p>
-          </div>
-          <p className="text-[#555] font-minecraft text-[10px]">
-            Run <span className="text-[#aaa]">/tasks link {code}</span> in-game.
-          </p>
-          <button onClick={() => setCode(null)} className="text-zinc-600 hover:text-zinc-400 text-[10px] font-minecraft underline">
-            Generate new code
-          </button>
-        </div>
+<div className="space-y-6">
+  {/* The Big Code Box */}
+  <div className="bg-black/60 border-2 border-dashed border-[#00aaaa] p-6 text-center shadow-[4px_4px_0_#000]">
+    <p className="text-[#888] text-xs font-minecraft mb-2 uppercase tracking-widest">
+      Your Secret Key (Expires in 5m)
+    </p>
+    <p className="text-5xl font-minecraft text-[#00ffff] tracking-[0.2em] drop-shadow-[0_0_8px_rgba(0,255,255,0.5)]">
+      {code}
+    </p>
+  </div>
+
+  {/* 📍 The Instruction Text (Bigger & Clearer) */}
+  <div className="text-center space-y-3">
+    <p className="text-zinc-300 font-minecraft text-lg">
+      Run this command in-game to link your server:
+    </p>
+    <div className="inline-block bg-black border-2 border-[#333] p-3 px-5 font-mono text-[#00ffff] text-xl shadow-[4px_4px_0_#222]">
+      /tasks link {code}
+    </div>
+  </div>
+
+  <div className="text-center">
+    <button 
+      onClick={() => setCode(null)}
+      className="text-zinc-600 hover:text-zinc-400 text-xs font-minecraft underline transition-colors"
+    >
+      Generate a different code
+    </button>
+  </div>
+</div>
       )}
     </section>
   );
