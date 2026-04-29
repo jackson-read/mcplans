@@ -1,25 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { linkingCodes } from '@/db/schema';
+import { tasks } from '@/db/schema'; 
 import { eq } from 'drizzle-orm';
 
 export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
-    const code = searchParams.get('code');
+    const worldId = searchParams.get('worldId');
 
-    if (!code) {
-        return new NextResponse("Missing code", { status: 400 });
+    if (!worldId) {
+        return new NextResponse("Missing worldId", { status: 400 });
     }
 
-    const linkEntry = await db.query.linkingCodes.findFirst({
-        where: eq(linkingCodes.code, code),
+    const worldTasks = await db.query.tasks.findMany({
+        where: eq(tasks.worldId, parseInt(worldId)),
+        columns: {
+            id: true,
+            taskName: true,
+            isCompleted: true,
+        }
     });
 
-    if (!linkEntry) {
-        return new NextResponse("Invalid or expired code", { status: 404 });
-    }
-
-    await db.delete(linkingCodes).where(eq(linkingCodes.code, code));
-
-    return new NextResponse(linkEntry.worldId.toString(), { status: 200 });
+    return NextResponse.json(worldTasks);
 }
