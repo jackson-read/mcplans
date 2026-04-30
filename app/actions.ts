@@ -334,9 +334,16 @@ export async function deleteTask(formData: FormData) {
   const task = await db.query.tasks.findFirst({ where: eq(tasks.id, taskId) });
   if (!task) return;
 
-  // STRICT CHECK: Only the Creator can delete
-  if (task.creatorId !== userId) {
-    throw new Error("Only the creator can delete this task.");
+  // Find out if the person clicking delete is the owner of the world
+  const currentUserMembership = await db.query.members.findFirst({
+    where: and(eq(members.userId, userId), eq(members.worldId, worldId))
+  });
+
+  const isOwner = currentUserMembership?.role === "owner";
+
+  // Check: Must be Creator OR World Owner
+  if (task.creatorId !== userId && !isOwner) {
+    throw new Error("Only the creator or world owner can delete this task.");
   }
 
   await db.delete(tasks).where(eq(tasks.id, taskId));

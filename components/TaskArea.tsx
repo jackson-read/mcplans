@@ -77,7 +77,11 @@ return (
       <div className="flex-1">
         {/* NO MORE FAINT TEXT OR LINE-THROUGH */}
         <p className={`text-sm leading-tight ${theme.text}`}>{task.description}</p>
-        <p className={`text-[9px] opacity-40 mt-1 font-mono uppercase ${theme.text}`}>By {userMap.get(task.creatorId || "")?.name || 'Unknown'}</p>
+        <p className={`text-[9px] opacity-40 mt-1 font-mono uppercase ${theme.text}`}>
+          By {task.creatorId?.startsWith("user_") 
+          ? (userMap.get(task.creatorId)?.name || 'Unknown') 
+          : task.creatorId}
+</p>
       </div>
 
 <div className={`mt-auto pt-2 border-t ${theme.border} rounded p-1`}>
