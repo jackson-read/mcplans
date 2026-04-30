@@ -57,8 +57,8 @@ export async function POST(request: NextRequest) {
     }
 }
 
-// 3. PATCH: Complete (or un-complete) a task
-export async function PATCH(request: NextRequest) {
+// 3. PUT: Complete (or un-complete) a task
+export async function PUT(request: NextRequest) {
     try {
         const body = await request.json();
         const { taskId, isCompleted } = body;
